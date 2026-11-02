@@ -1,0 +1,131 @@
+/* styles.css
+   Paleta acordada: crema papel, carmesí, azul noche y mostaza.
+   Estilo: tarjetas redondeadas con borde firme y sombra desplazada (look retro). */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  --crema: #F4EBD9;
+  --blanco: #FFFDF8;
+  --carmesi: #8B1E2B;
+  --azul: #1F2A44;
+  --mostaza: #D9A441;
+  --verde: #5E6B4A;
+  --gris: #6B6470;
+  --radio: 20px;
+  --sombra: 4px 4px 0 var(--azul);
+  --display: "Fraunces", Georgia, serif;
+  --texto: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+/* ---------- 2. Base ---------- */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--crema); color: var(--azul); font: 400 16px/1.5 var(--texto); }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--display); font-weight: 800; line-height: 1.15; margin: 0 0 8px; }
+main { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------- 3. Encabezado y pie ---------- */
+.site-header {
+  display: flex; justify-content: space-between; align-items: center;
+  max-width: 1200px; margin: 0 auto; padding: 20px;
+  border-bottom: 2px solid var(--azul);
+}
+.wordmark { font: 800 26px var(--display); text-decoration: none; }
+.dot { display: inline-block; width: 10px; height: 10px; margin-left: 4px; border-radius: 50%; background: var(--carmesi); }
+nav { display: flex; gap: 20px; }
+nav a { font-weight: 600; }
+.site-footer {
+  display: flex; justify-content: space-between; max-width: 1200px; margin: 64px auto 0;
+  padding: 20px; border-top: 2px solid var(--azul); font-size: 14px;
+}
+
+/* ---------- 4. Portada ---------- */
+.hero { padding: 64px 0 40px; max-width: 720px; }
+.hero h1 { font-size: clamp(34px, 6vw, 56px); }
+.hero p { font-size: 18px; color: var(--gris); }
+.search { display: flex; gap: 8px; margin-top: 24px; }
+.search input {
+  flex: 1; padding: 12px 20px; border: 2px solid var(--azul); border-radius: 999px;
+  background: var(--blanco); font: inherit;
+}
+.search button, .btn {
+  padding: 12px 22px; border: 2px solid var(--azul); border-radius: 999px;
+  background: var(--carmesi); color: var(--crema); font: 600 16px var(--texto); cursor: pointer;
+  box-shadow: 3px 3px 0 var(--azul);
+}
+.btn.ghost { background: transparent; color: var(--azul); box-shadow: none; }
+
+/* ---------- 5. Catálogo ---------- */
+.catalog { margin-top: 24px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.pill {
+  padding: 6px 16px; border: 2px solid var(--azul); border-radius: 999px;
+  background: var(--blanco); font: 600 14px var(--texto); cursor: pointer;
+}
+.pill[aria-pressed="true"] { background: var(--azul); color: var(--crema); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+.card {
+  display: block; text-decoration: none; background: var(--blanco);
+  border: 2px solid var(--azul); border-radius: var(--radio); box-shadow: var(--sombra);
+  overflow: hidden;
+}
+.card img { aspect-ratio: 1 / 1; width: 100%; object-fit: cover; border-bottom: 2px solid var(--azul); }
+.card-body { padding: 14px; }
+.card-meta { margin: 0; font-size: 13px; color: var(--gris); }
+.card h3 { font-size: 18px; margin: 4px 0; }
+.card-price { margin: 0; font-weight: 600; }
+.tag {
+  margin-left: 6px; padding: 2px 8px; border-radius: 999px;
+  background: var(--mostaza); font-size: 12px; border: 1.5px solid var(--azul);
+}
+.status { color: var(--gris); }
+.status.error { color: var(--carmesi); }
+
+/* ---------- 6. Contacto y formularios ---------- */
+.contact { margin: 64px 0 0; }
+.form-card {
+  max-width: 560px; background: var(--blanco); border: 2px solid var(--azul);
+  border-radius: var(--radio); box-shadow: var(--sombra); padding: 24px;
+}
+.form-card.narrow { max-width: 420px; margin: 40px auto; }
+label { display: grid; gap: 6px; margin-bottom: 14px; font-weight: 600; font-size: 14px; }
+input, textarea, select {
+  padding: 10px 12px; border: 2px solid var(--azul); border-radius: 12px;
+  background: var(--crema); font: 400 16px var(--texto); color: var(--azul);
+}
+textarea { resize: vertical; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 3px solid var(--mostaza); outline-offset: 2px;
+}
+
+/* ---------- 7. Detalle ---------- */
+.detail { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding-top: 40px; align-items: start; }
+.detail-image {
+  border: 2px solid var(--azul); border-radius: var(--radio); box-shadow: var(--sombra);
+  overflow: hidden; background: var(--blanco);
+}
+.detail-image img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; }
+.detail-info .serie { color: var(--carmesi); font-weight: 600; margin: 0; }
+.detail-info h1 { font-size: clamp(30px, 4vw, 44px); }
+.detail-info .price { font: 800 28px var(--display); margin: 8px 0 16px; }
+.detail-info p { color: var(--gris); }
+.stock-ok { color: var(--verde); font-weight: 600; }
+.stock-out { color: var(--carmesi); font-weight: 600; }
+.back-link { font-weight: 600; }
+
+/* ---------- 8. Administración ---------- */
+.admin { padding-top: 24px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.panel-head h1 { font-size: 26px; margin: 0; }
+
+/* ---------- 9. Responsive ---------- */
+@media (max-width: 760px) {
+  .detail { grid-template-columns: 1fr; gap: 24px; }
+  .site-header { flex-direction: column; gap: 12px; }
+}
+
+/* ---------- 10. Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
