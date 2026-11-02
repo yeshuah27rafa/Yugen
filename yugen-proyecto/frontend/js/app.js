@@ -1,5 +1,5 @@
 // app.js
-// Lógica del frontend. Se reutiliza en las tres páginas y cada bloque se activa según su elemento.
+// Lógica del frontend compartida por las tres páginas. Cada bloque se activa según el elemento que exista.
 
 // ---------- 1. Configuración y utilidades ----------
 const API_URL = "http://localhost:4000/api";
@@ -29,17 +29,17 @@ async function request(path, options = {}) {
 // ---------- 2. Portada y catálogo ----------
 let currentCategory = "";
 
-// Plantilla de tarjeta: enlaza a la página de detalle con el id del producto.
+// Tarjeta flotante: imagen protagonista y texto breve debajo.
 function productCard(product) {
   const soldOut = product.stock === 0;
-  const tag = soldOut ? '<span class="tag">Agotado</span>' : "";
+  const soldTag = soldOut ? '<span class="sold">Agotado</span>' : "";
   return `
     <a class="card" href="producto.html?id=${escapeHtml(product._id)}">
       <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}">
       <div class="card-body">
-        <p class="card-meta">${escapeHtml(product.anime || product.category)}</p>
         <h3>${escapeHtml(product.name)}</h3>
-        <p class="card-price">${formatPrice(product.price)}${tag}</p>
+        <p class="card-meta">${escapeHtml(product.anime || product.category)}</p>
+        <p class="card-price">${formatPrice(product.price)}${soldTag}</p>
       </div>
     </a>`;
 }
@@ -63,14 +63,14 @@ async function loadProducts() {
   }
 }
 
-// Conecta filtros, buscador y formulario de contacto de la portada.
+// Conecta chips, buscador y formulario de contacto de la portada.
 function initHome() {
   loadProducts();
 
-  document.querySelectorAll(".pill").forEach((button) => {
+  document.querySelectorAll(".chip").forEach((button) => {
     button.addEventListener("click", () => {
       currentCategory = button.dataset.category;
-      document.querySelectorAll(".pill").forEach((other) => {
+      document.querySelectorAll(".chip").forEach((other) => {
         other.setAttribute("aria-pressed", other === button ? "true" : "false");
       });
       loadProducts();
@@ -102,36 +102,45 @@ function initHome() {
 }
 
 // ---------- 3. Detalle de producto ----------
-// Lee ?id= de la URL y muestra el producto correspondiente.
+// Lee ?id= de la URL y dibuja el producto sobre el tablero de cuadros.
 async function loadDetail() {
   const box = document.getElementById("detail");
   const id = new URLSearchParams(window.location.search).get("id");
   if (id === null || id === "") {
-    box.innerHTML = '<p class="status error">Producto no encontrado.</p>';
+    box.innerHTML = '<p class="status error" style="padding:40px">Producto no encontrado.</p>';
     return;
   }
   try {
     const p = await request("/products/" + encodeURIComponent(id));
-    const stockText = p.stock > 0
-      ? `<p class="stock-ok">Disponible: ${p.stock} en stock</p>`
-      : '<p class="stock-out">Agotado por ahora</p>';
+    const inStock = p.stock > 0;
+    const stockLine = inStock
+      ? `<p class="stock in">Disponible: ${p.stock} en stock</p>`
+      : '<p class="stock out">Agotado por ahora</p>';
+    const action = inStock
+      ? '<a class="btn" href="index.html#contacto">Pedir esta pieza</a>'
+      : '<span class="btn disabled">Agotado</span>';
     box.innerHTML = `
-      <div class="detail-image"><img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}"></div>
-      <div class="detail-info">
-        <p class="serie">${escapeHtml(p.anime || p.category)}</p>
-        <h1>${escapeHtml(p.name)}</h1>
-        <p class="price">${formatPrice(p.price)}</p>
-        ${stockText}
-        <p>${escapeHtml(p.description)}</p>
-        <p><a class="back-link" href="index.html#contacto">Pedir esta pieza →</a></p>
-      </div>`;
+      <section class="stage">
+        <div class="plate"><img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}"></div>
+      </section>
+      <section class="info">
+        <span class="series">${escapeHtml(p.anime || p.category)}</span>
+        <h1 class="pixel-title">${escapeHtml(p.name)}</h1>
+        <p class="pixel-price">${formatPrice(p.price)}</p>
+        ${stockLine}
+        <p class="desc">${escapeHtml(p.description)}</p>
+        <div class="actions">
+          ${action}
+          <a class="btn ghost" href="index.html#catalogo">Volver al catálogo</a>
+        </div>
+      </section>`;
   } catch (error) {
-    box.innerHTML = `<p class="status error">${escapeHtml(error.message)}</p>`;
+    box.innerHTML = `<p class="status error" style="padding:40px">${escapeHtml(error.message)}</p>`;
   }
 }
 
 // ---------- 4. Administración ----------
-// Muestra login o panel según exista un token guardado en la sesión del navegador.
+// Muestra login o panel según exista un token en la sesión del navegador.
 function refreshAdminView() {
   const loggedIn = sessionStorage.getItem("adminToken") !== null;
   document.getElementById("admin-login").hidden = loggedIn;
