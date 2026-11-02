@@ -1,11 +1,12 @@
 {
-  "name": "nekoya-backend",
-  "version": "1.0.0",
+  "name": "yugen-backend",
+  "version": "0.2.0",
   "private": true,
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -14,5 +15,8 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.1"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^9.5.0"
   }
 }

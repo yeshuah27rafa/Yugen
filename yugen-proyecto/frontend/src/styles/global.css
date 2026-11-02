@@ -1,0 +1,181 @@
+/* styles/global.css
+   Identidad de Yugen: papel crema, azul de tinta, rojo vino y dorado. Tipografía editorial (Shippori Mincho)
+   para títulos, Inter para texto y Press Start 2P solo en detalles pixel pequeños. */
+
+:root {
+  --crema: #F4EBD9;
+  --papel: #FBF7EE;
+  --azul: #1F2A44;
+  --rojo: #8B1E2B;
+  --dorado: #D9A441;
+  --tinta: #5B5961;
+  --linea: rgba(31, 42, 68, 0.18);
+  --serif: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+  --sans: "Inter", system-ui, -apple-system, sans-serif;
+  --pixel: "Press Start 2P", monospace;
+}
+
+/* ---------- Base ---------- */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--crema); color: var(--azul); font: 400 16px/1.6 var(--sans); }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 700; line-height: 1.2; }
+:focus-visible { outline: 2px solid var(--dorado); outline-offset: 3px; }
+
+.skip-link { position: absolute; left: -999px; top: 0; }
+.skip-link:focus { left: 16px; top: 8px; background: var(--papel); padding: 8px 12px; z-index: 10; }
+
+/* ---------- Aviso, encabezado, pie ---------- */
+.marquee {
+  height: 36px; display: flex; align-items: center; justify-content: center;
+  background: var(--azul); color: var(--crema); font: 9px var(--pixel); letter-spacing: 0.04em;
+}
+.site-header {
+  display: flex; justify-content: space-between; align-items: center;
+  max-width: 1200px; margin: 0 auto; padding: 18px 24px; border-bottom: 1px solid var(--linea);
+}
+.wordmark { font: 14px var(--pixel); text-decoration: none; letter-spacing: 0.08em; }
+nav { display: flex; gap: 24px; font-size: 14px; }
+nav a { text-decoration: none; }
+nav a:hover, nav a.active { color: var(--rojo); }
+main { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.site-footer {
+  max-width: 1200px; margin: 112px auto 0; padding: 24px; border-top: 1px solid var(--linea);
+  font-size: 14px; color: var(--tinta);
+}
+
+/* ---------- Botones y estados ---------- */
+.button {
+  display: inline-block; padding: 14px 24px; border: 0; border-radius: 2px; cursor: pointer;
+  background: var(--rojo); color: var(--papel); font: 600 15px var(--sans); text-decoration: none;
+}
+.button:hover { background: var(--azul); }
+.button:disabled { opacity: 0.6; cursor: wait; }
+.status { color: var(--tinta); font-size: 15px; padding: 16px 0; }
+.status--error { color: var(--rojo); }
+
+/* ---------- Portada: hero ---------- */
+.hero {
+  display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center;
+  padding: 72px 0 96px;
+}
+.hero__title { font-size: clamp(38px, 5.4vw, 64px); letter-spacing: -0.01em; }
+.hero__lead { margin: 24px 0 32px; max-width: 42ch; color: var(--tinta); font-size: 17px; }
+.hero__figure { position: relative; margin: 0; isolation: isolate; }
+.hero__block { position: absolute; right: -18px; bottom: -18px; width: 42%; height: 28%; background: var(--dorado); z-index: -1; }
+.hero__frame {
+  aspect-ratio: 4 / 5; background: var(--papel); border: 1px solid var(--azul); overflow: hidden;
+}
+.hero__frame img { width: 100%; height: 100%; object-fit: cover; }
+.hero__frame--empty {
+  display: grid; place-items: center; background: var(--azul); color: var(--crema);
+  font: 28px var(--serif);
+}
+.hero__caption { margin-top: 14px; font-size: 14px; color: var(--tinta); }
+
+/* ---------- Secciones ---------- */
+.section { padding-top: 96px; }
+.section__head {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
+  margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--linea);
+}
+.section__head h2 { font-size: 32px; }
+.section__head p { color: var(--tinta); max-width: 44ch; font-size: 15px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
+
+/* ---------- Tarjeta de producto ---------- */
+.product-card { display: block; text-decoration: none; }
+.product-card__media {
+  aspect-ratio: 4 / 5; background: var(--papel); border: 1px solid var(--linea);
+  overflow: hidden; display: grid; place-items: center;
+}
+.product-card__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.product-card:hover .product-card__media img { transform: scale(1.03); }
+.product-card__empty { color: var(--tinta); font-size: 14px; }
+.product-card__body { padding-top: 12px; }
+.product-card__body h3 { font-size: 18px; margin: 4px 0 8px; }
+.product-card__work { font-size: 13px; color: var(--tinta); }
+.product-card:hover h3 { color: var(--rojo); }
+.product-card__meta { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+.avail { font-size: 12px; color: var(--tinta); }
+.avail--agotado { color: var(--rojo); }
+
+/* ---------- Categorías (composiciones propias en CSS) ---------- */
+.categories { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.cat {
+  display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
+  min-height: 300px; padding: 20px; background: var(--papel); border: 1px solid var(--linea); text-decoration: none;
+}
+.cat h3 { font-size: 22px; }
+.cat p { font-size: 14px; color: var(--tinta); }
+.cat:hover { border-color: var(--azul); }
+.cat__art { position: relative; flex: 1; }
+.cat__art::before { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.cat__art--pin::before { width: 96px; height: 96px; border-radius: 50%; background: var(--rojo); box-shadow: 0 0 0 10px var(--crema), 0 0 0 11px var(--azul); }
+.cat__art--manga::before { width: 120px; height: 150px; background: repeating-linear-gradient(90deg, var(--azul) 0 10px, transparent 10px 18px); }
+.cat__art--figura::before { width: 72px; height: 130px; border-radius: 36px 36px 4px 4px; background: var(--dorado); }
+.cat__art--mousepad::before { width: 150px; height: 96px; border-radius: 6px; background: var(--azul); box-shadow: inset 0 0 0 10px var(--crema); }
+
+/* ---------- Explorar por obra (lista editorial) ---------- */
+.works { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--linea); }
+.works li { border-bottom: 1px solid var(--linea); }
+.works a {
+  display: grid; grid-template-columns: 56px 1fr auto; gap: 16px; align-items: baseline;
+  padding: 20px 0; text-decoration: none;
+}
+.works__n { font: 11px var(--pixel); color: var(--tinta); }
+.works__title { font-family: var(--serif); font-size: 26px; }
+.works__year { color: var(--tinta); font-size: 14px; }
+.works a:hover .works__title { color: var(--rojo); }
+
+/* ---------- Editorial ---------- */
+.editorial {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 56px; padding-top: 112px;
+}
+.editorial h2 { font-size: 40px; }
+.editorial p + p { margin-top: 16px; }
+.editorial p { color: var(--tinta); font-size: 17px; }
+
+/* ---------- Contacto ---------- */
+.contact {
+  display: grid; grid-template-columns: 1fr 1.2fr; gap: 48px; margin-top: 112px;
+  padding: 48px; background: var(--papel); border: 1px solid var(--linea); scroll-margin-top: 24px;
+}
+.contact h2 { font-size: 32px; margin-bottom: 8px; }
+.contact__lead { color: var(--tinta); }
+.contact-form { display: grid; gap: 12px; }
+.contact-form input, .contact-form textarea {
+  font: 16px var(--sans); color: var(--azul); padding: 12px 14px;
+  background: var(--crema); border: 1px solid var(--linea); border-radius: 2px;
+}
+.form-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.form-foot .status { padding: 0; }
+
+/* ---------- Página en construcción ---------- */
+.soon { padding: 120px 0; display: grid; gap: 20px; justify-items: start; }
+.soon h1 { font-size: 40px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .hero, .editorial, .contact { grid-template-columns: 1fr; }
+  .hero { padding: 40px 0 64px; gap: 40px; }
+  .categories { grid-template-columns: repeat(2, 1fr); }
+  .section__head { flex-direction: column; align-items: flex-start; }
+  .contact { padding: 28px; gap: 28px; }
+  .editorial { gap: 24px; padding-top: 96px; }
+}
+@media (max-width: 560px) {
+  .site-header { flex-direction: column; gap: 12px; }
+  nav { gap: 16px; font-size: 13px; }
+  .categories { grid-template-columns: 1fr; }
+  .works a { grid-template-columns: 40px 1fr; }
+  .works__year { display: none; }
+  .hero__block { right: -8px; bottom: -8px; }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
