@@ -1,6 +1,7 @@
 // utils/format.js
-// Formatos compartidos: precio y etiquetas de disponibilidad en español.
+// Formatos compartidos: precio (opcional) y etiquetas de disponibilidad en español.
 export function formatPrice(value) {
+  if (value === null || value === undefined) return "Consultar precio";
   return "$" + Number(value).toFixed(2);
 }
 

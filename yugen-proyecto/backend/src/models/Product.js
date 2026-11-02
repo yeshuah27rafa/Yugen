@@ -14,7 +14,8 @@ const productSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
   category: { type: String, enum: ["pin", "manga", "figura", "mousepad", "otro"], required: true },
   work: { type: mongoose.Schema.Types.ObjectId, ref: "Work", required: true },
-  price: { type: Number, required: true, min: 0 },
+  // Precio opcional: null significa "consultar". Se administrará desde el panel en la etapa 4.
+  price: { type: Number, min: 0, default: null },
   stock: { type: Number, default: 0, min: 0 },
   availability: { type: String, enum: ["en_stock", "agotado", "pedido_exterior"], default: "en_stock" },
   images: { type: [imageSchema], default: [] },

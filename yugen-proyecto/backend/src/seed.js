@@ -11,11 +11,13 @@ const SAMPLE_WORKS = [
   { title: "Violet Evergarden", slug: "violet-evergarden", year: 2018 }
 ];
 
+// price null = precio a consultar. Sirve para probar esa rama del catálogo.
 const SAMPLE_PRODUCTS = [
   { name: "Pin Unidad 01", slug: "pin-unidad-01", category: "pin", workSlug: "evangelion", price: 6.5, stock: 12, featured: true, availability: "en_stock", color: "1F2A44" },
   { name: "Figura Mima", slug: "figura-mima", category: "figura", workSlug: "perfect-blue", price: 38, stock: 0, featured: true, availability: "agotado", color: "8B1E2B" },
   { name: "Mousepad Lain", slug: "mousepad-lain", category: "mousepad", workSlug: "lain", price: 14, stock: 5, featured: true, availability: "en_stock", color: "D9A441" },
-  { name: "Manga Violet, vol. 1", slug: "manga-violet-vol-1", category: "manga", workSlug: "violet-evergarden", price: 12, stock: 3, featured: false, availability: "pedido_exterior", color: "1F2A44" }
+  { name: "Manga Violet, vol. 1", slug: "manga-violet-vol-1", category: "manga", workSlug: "violet-evergarden", price: 12, stock: 3, featured: false, availability: "pedido_exterior", color: "1F2A44" },
+  { name: "Llavero Violet", slug: "llavero-violet", category: "otro", workSlug: "violet-evergarden", price: null, stock: 4, featured: false, availability: "en_stock", color: "5E6B4A" }
 ];
 
 module.exports = async function seedIfEmpty() {

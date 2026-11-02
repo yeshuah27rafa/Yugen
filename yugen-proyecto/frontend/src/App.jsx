@@ -1,8 +1,9 @@
 // App.jsx
-// Mapa de rutas. Las rutas de catálogo y detalle son marcadores hasta sus etapas (2 y 3).
+// Mapa de rutas. El detalle de producto sigue como marcador hasta la etapa 3.
 import { Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import Home from "./pages/Home.jsx";
+import Catalog from "./pages/Catalog.jsx";
 import ComingSoon from "./pages/ComingSoon.jsx";
 
 export default function App() {
@@ -10,7 +11,7 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
-        <Route path="catalogo" element={<ComingSoon title="Catálogo" stage="Etapa 2" />} />
+        <Route path="catalogo" element={<Catalog />} />
         <Route path="producto/:slug" element={<ComingSoon title="Detalle de producto" stage="Etapa 3" />} />
         <Route path="*" element={<ComingSoon title="Página no encontrada" stage="" />} />
       </Route>
