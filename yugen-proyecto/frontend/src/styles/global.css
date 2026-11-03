@@ -208,3 +208,53 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 }
 @media (max-width: 900px) { .filter-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px) { .filter-row { grid-template-columns: 1fr; } }
+
+/* ---------- Detalle de producto (fase 3) ---------- */
+.detail { padding-top: 40px; }
+.detail__top { margin-bottom: 24px; }
+.back-link { font-weight: 600; font-size: 15px; }
+.detail__layout { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: start; }
+.gallery { margin: 0; display: grid; gap: 12px; }
+.gallery__main { aspect-ratio: 4 / 5; background: var(--papel); border: 1px solid var(--linea); overflow: hidden; }
+.gallery__main img { width: 100%; height: 100%; object-fit: cover; }
+.gallery__empty {
+  aspect-ratio: 4 / 5; display: grid; place-items: center; background: var(--papel);
+  border: 1px solid var(--linea); color: var(--tinta);
+}
+.gallery__thumbs { list-style: none; margin: 0; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; }
+.gallery__thumbs button {
+  width: 72px; height: 72px; padding: 0; cursor: pointer; background: var(--papel);
+  border: 1px solid var(--linea); overflow: hidden;
+}
+.gallery__thumbs button[aria-pressed="true"] { border: 2px solid var(--azul); }
+.gallery__thumbs img { width: 100%; height: 100%; object-fit: cover; }
+.detail__info { display: grid; gap: 20px; }
+.detail__meta { font-size: 14px; color: var(--tinta); }
+.detail__meta a { color: var(--azul); }
+.detail__title { font-size: clamp(30px, 4vw, 44px); }
+.detail__price { font-family: var(--serif); font-size: 28px; font-weight: 700; }
+.detail__availability { font-size: 15px; font-weight: 600; }
+.detail__availability--agotado { color: var(--rojo); }
+.detail__description { color: var(--tinta); font-size: 17px; max-width: 52ch; }
+.specs { margin: 0; display: grid; gap: 0; border-top: 1px solid var(--linea); }
+.specs div { display: grid; grid-template-columns: 140px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--linea); }
+.specs dt { color: var(--tinta); font-size: 14px; }
+.specs dd { margin: 0; font-size: 15px; }
+.ficha { padding: 24px; background: var(--papel); border: 1px solid var(--linea); }
+.ficha h2 { font-size: 20px; margin-bottom: 8px; }
+.ficha p { color: var(--tinta); }
+.inquiry { padding: 28px; background: var(--papel); border: 1px solid var(--linea); display: grid; gap: 12px; }
+.inquiry h2 { font-size: 22px; }
+.inquiry__lead { font-size: 14px; color: var(--tinta); }
+.inquiry__form { display: grid; gap: 10px; }
+.inquiry__form input, .inquiry__form textarea {
+  font: 15px var(--sans); color: var(--azul); padding: 10px 12px;
+  background: var(--crema); border: 1px solid var(--linea); border-radius: 2px;
+}
+.detail__related { margin-top: 96px; padding-bottom: 24px; }
+.detail-status { padding: 96px 0; display: grid; gap: 16px; justify-items: start; }
+.detail-status h1 { font-size: 36px; }
+@media (max-width: 900px) {
+  .detail__layout { grid-template-columns: 1fr; gap: 32px; }
+  .specs div { grid-template-columns: 110px 1fr; }
+}

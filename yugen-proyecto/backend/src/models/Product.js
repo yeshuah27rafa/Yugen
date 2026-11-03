@@ -9,6 +9,12 @@ const imageSchema = new mongoose.Schema({
   isMain: { type: Boolean, default: false }
 }, { _id: false });
 
+// Característica adicional (por ejemplo, "Medidas": "5 cm"). Opcional y editable desde el panel.
+const specSchema = new mongoose.Schema({
+  label: { type: String, required: true, trim: true },
+  value: { type: String, required: true, trim: true }
+}, { _id: false });
+
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
@@ -20,6 +26,7 @@ const productSchema = new mongoose.Schema({
   availability: { type: String, enum: ["en_stock", "agotado", "pedido_exterior"], default: "en_stock" },
   images: { type: [imageSchema], default: [] },
   description: { type: String, default: "" },
+  specs: { type: [specSchema], default: [] },
   // Ficha contextual: opcional, explica la conexión del producto con su obra. Nunca se inventa.
   contexto: { type: String, default: "", maxlength: 1200 },
   featured: { type: Boolean, default: false }

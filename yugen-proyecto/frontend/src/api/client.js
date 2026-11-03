@@ -3,10 +3,19 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 async function apiRequest(path, options = {}) {
-  const response = await fetch(API_URL + path, options);
+  let response;
+  try {
+    response = await fetch(API_URL + path, options);
+  } catch (networkError) {
+    const error = new Error("No pudimos conectar con el servidor. Intenta de nuevo en un momento.");
+    error.status = 0;
+    throw error;
+  }
   const data = await response.json();
   if (response.ok === false) {
-    throw new Error(data.error || "No pudimos completar la solicitud.");
+    const error = new Error(data.error || "No pudimos completar la solicitud.");
+    error.status = response.status;
+    throw error;
   }
   return data;
 }
