@@ -9,7 +9,7 @@ module.exports = function requireAdmin(req, res, next) {
     return res.status(401).json({ error: "Inicia sesión como administrador." });
   }
   try {
-    req.admin = jwt.verify(token, process.env.JWT_SECRET);
+    req.admin = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     return next();
   } catch (error) {
     return res.status(401).json({ error: "Tu sesión expiró. Vuelve a iniciar sesión." });

@@ -41,6 +41,10 @@ router.put("/products/:id", asyncHandler(async (req, res) => {
   if (result.errors.length > 0) {
     return res.status(400).json({ error: result.errors.join(" ") });
   }
+  const workExists = await Work.exists({ _id: result.data.work });
+  if (workExists === null) {
+    return res.status(400).json({ error: "La obra seleccionada no existe." });
+  }
   const updated = await Product.findByIdAndUpdate(req.params.id, result.data, { new: true, runValidators: true })
     .populate("work", WORK_FIELDS);
   if (updated === null) {

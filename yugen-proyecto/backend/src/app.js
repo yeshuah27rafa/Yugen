@@ -12,6 +12,11 @@ const contactRoutes = require("./routes/contact");
 
 const app = express();
 
+// Detrás de un proxy (por ejemplo, en producción), el límite de intentos debe ver la IP real del cliente.
+if (process.env.TRUST_PROXY) {
+  app.set("trust proxy", Number(process.env.TRUST_PROXY));
+}
+
 app.use(helmet());
 // Solo el origen del frontend puede leer respuestas. credentials permite enviar la cookie de sesión.
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173", credentials: true }));
@@ -28,16 +33,19 @@ app.use("/api", (req, res) => {
   res.status(404).json({ error: "Ruta no encontrada." });
 });
 
-// Manejador central de errores: no expone detalles internos al cliente.
+// Manejador central de errores: no expone detalles internos al cliente y devuelve el código correcto.
 app.use((error, req, res, next) => {
+  if (error.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "La solicitud no tiene un formato JSON válido." });
+  }
+  if (error.type === "entity.too.large") {
+    return res.status(413).json({ error: "La solicitud es demasiado grande." });
+  }
   if (error.code === 11000) {
     return res.status(409).json({ error: "Ya existe una pieza con ese enlace (slug). Cámbialo e intenta de nuevo." });
   }
   if (error.name === "ValidationError") {
     return res.status(400).json({ error: "Faltan datos o son inválidos." });
-  }
-  if (error.type === "entity.too.large") {
-    return res.status(413).json({ error: "La solicitud es demasiado grande." });
   }
   console.error(error);
   return res.status(500).json({ error: "Error interno del servidor." });

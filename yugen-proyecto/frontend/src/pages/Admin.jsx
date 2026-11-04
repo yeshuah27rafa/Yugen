@@ -7,6 +7,7 @@ import AdminPanel from "../components/admin/AdminPanel.jsx";
 
 export default function Admin() {
   const [session, setSession] = useState({ status: "checking", email: "" });
+  const [logoutError, setLogoutError] = useState("");
 
   useEffect(() => {
     apiGet("/auth/me")
@@ -21,15 +22,22 @@ export default function Admin() {
   }, []);
 
   function handleLogin(data) {
+    setLogoutError("");
     setCsrfToken(data.csrfToken);
     setSession({ status: "in", email: data.email });
   }
 
+  // Solo se muestra la sesión como cerrada si el servidor la cerró o si ya había caducado (401).
+  // Si la petición falla por red o por error del servidor, la sesión sigue abierta y se avisa al usuario.
   async function handleLogout() {
+    setLogoutError("");
     try {
       await apiPost("/auth/logout");
-    } catch (error) {
-      // Aunque el servidor no responda, la sesión se cierra en el cliente.
+    } catch (failure) {
+      if (failure.status !== 401) {
+        setLogoutError("No pudimos cerrar la sesión en el servidor. Tu sesión sigue activa; inténtalo de nuevo.");
+        return;
+      }
     }
     setCsrfToken("");
     setSession({ status: "out", email: "" });
@@ -43,7 +51,7 @@ export default function Admin() {
   }
   return (
     <section className="admin-page">
-      <AdminPanel email={session.email} onLogout={handleLogout} />
+      <AdminPanel email={session.email} onLogout={handleLogout} logoutError={logoutError} />
     </section>
   );
 }

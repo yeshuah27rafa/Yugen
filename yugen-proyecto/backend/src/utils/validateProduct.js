@@ -31,10 +31,12 @@ function validateProduct(body) {
 
   data.name = text(body.name);
   if (data.name === "") errors.push("El nombre es obligatorio.");
+  if (data.name.length > 120) errors.push("El nombre no puede superar 120 caracteres.");
 
   const slugSource = text(body.slug) === "" ? data.name : text(body.slug);
   data.slug = slugify(slugSource);
   if (data.slug === "") errors.push("El enlace (slug) no es válido.");
+  if (data.slug.length > 120) errors.push("El enlace (slug) no puede superar 120 caracteres.");
 
   data.category = text(body.category);
   if (CATEGORIES.includes(data.category) === false) errors.push("La categoría no es válida.");

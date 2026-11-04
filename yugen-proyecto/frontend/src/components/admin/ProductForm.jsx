@@ -38,7 +38,9 @@ function toDraft(product) {
   };
 }
 
-export default function ProductForm({ product, works, onSaved, onCancel }) {
+export default function ProductForm({ product, worksState, onSaved, onCancel }) {
+  const worksReady = worksState.status === "ready";
+  const works = worksReady ? worksState.data : [];
   const [draft, setDraft] = useState(() => toDraft(product));
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -104,6 +106,10 @@ export default function ProductForm({ product, works, onSaved, onCancel }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (draft.work === "") {
+      setError("Selecciona una obra antes de guardar.");
+      return;
+    }
     setSending(true);
     setError("");
     try {
@@ -147,12 +153,23 @@ export default function ProductForm({ product, works, onSaved, onCancel }) {
         </label>
         <label className="field">
           Obra
-          <select value={draft.work} onChange={(event) => setField("work", event.target.value)} required>
-            <option value="">Selecciona una obra</option>
+          <select
+            value={draft.work}
+            onChange={(event) => setField("work", event.target.value)}
+            required
+            disabled={worksReady === false}
+          >
+            <option value="">{worksReady ? "Selecciona una obra" : "Cargando obras…"}</option>
             {works.map((work) => (
               <option key={work._id} value={work._id}>{work.title}</option>
             ))}
           </select>
+          {worksState.status === "loading" ? <span className="status">Cargando obras…</span> : null}
+          {worksState.status === "error" ? (
+            <span className="status status--error" role="alert">
+              No pudimos cargar las obras. <button className="link-button" type="button" onClick={worksState.reload}>Reintentar</button>
+            </span>
+          ) : null}
         </label>
         <label className="field">
           Precio (USD, vacío = consultar)
@@ -256,7 +273,7 @@ export default function ProductForm({ product, works, onSaved, onCancel }) {
       </fieldset>
 
       <div className="form-foot">
-        <button className="button" type="submit" disabled={sending}>
+        <button className="button" type="submit" disabled={sending || worksReady === false}>
           {sending ? "Guardando…" : "Guardar pieza"}
         </button>
         <button className="btn-ghost" type="button" onClick={onCancel}>Cancelar</button>

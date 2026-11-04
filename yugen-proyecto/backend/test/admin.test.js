@@ -184,3 +184,15 @@ test("cerrar sesión borra la cookie y bloquea el panel", async () => {
   const cookie = response.headers.getSetCookie()[0];
   assert.match(cookie, /yugen_session=;/);
 });
+
+test("al editar, una obra que no existe se rechaza como al crear", async () => {
+  const list = await (await adminFetch("/admin/products")).json();
+  const target = list[0];
+  const response = await adminFetch(`/admin/products/${target._id}`, {
+    method: "PUT",
+    headers: { "X-CSRF-Token": csrfToken },
+    body: JSON.stringify({ name: target.name, category: target.category, work: "64b000000000000000000999" })
+  });
+  assert.strictEqual(response.status, 400);
+});
+

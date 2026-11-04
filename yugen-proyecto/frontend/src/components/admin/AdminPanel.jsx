@@ -7,7 +7,7 @@ import DataState from "../DataState.jsx";
 import ProductList from "./ProductList.jsx";
 import ProductForm from "./ProductForm.jsx";
 
-export default function AdminPanel({ email, onLogout }) {
+export default function AdminPanel({ email, onLogout, logoutError }) {
   const products = useApi("/admin/products");
   const works = useApi("/works");
   const [editing, setEditing] = useState(null); // null: lista; "new": alta; objeto: edición
@@ -51,6 +51,7 @@ export default function AdminPanel({ email, onLogout }) {
       </header>
 
       {notice !== "" ? <p className="status" role="status">{notice}</p> : null}
+      {logoutError !== "" ? <p className="status status--error" role="alert">{logoutError}</p> : null}
 
       {sessionExpired ? (
         <div className="status status--error">
@@ -71,7 +72,7 @@ export default function AdminPanel({ email, onLogout }) {
       ) : (
         <ProductForm
           product={editing === "new" ? null : editing}
-          works={works.status === "ready" ? works.data : []}
+          worksState={works}
           onSaved={handleSaved}
           onCancel={() => setEditing(null)}
         />
