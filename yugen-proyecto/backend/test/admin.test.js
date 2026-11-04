@@ -186,11 +186,19 @@ test("cerrar sesión borra la cookie y bloquea el panel", async () => {
 });
 
 test("al editar, una obra que no existe se rechaza como al crear", async () => {
-  const list = await (await adminFetch("/admin/products")).json();
+  // Esta prueba va después del cierre de sesión: inicia su propia sesión para no depender del orden de las pruebas.
+  const loginResponse = await login("clave-de-prueba");
+  const session = await loginResponse.json();
+  const cookie = loginResponse.headers.getSetCookie()[0].split(";")[0];
+
+  const listResponse = await fetch(base + "/admin/products", { headers: { Cookie: cookie } });
+  const list = await listResponse.json();
+  assert.ok(Array.isArray(list) && list.length > 0, "la lista de piezas debe devolver al menos una pieza");
   const target = list[0];
-  const response = await adminFetch(`/admin/products/${target._id}`, {
+
+  const response = await fetch(base + `/admin/products/${target._id}`, {
     method: "PUT",
-    headers: { "X-CSRF-Token": csrfToken },
+    headers: { "Content-Type": "application/json", Cookie: cookie, "X-CSRF-Token": session.csrfToken },
     body: JSON.stringify({ name: target.name, category: target.category, work: "64b000000000000000000999" })
   });
   assert.strictEqual(response.status, 400);

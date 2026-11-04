@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --test test/catalog.test.js test/product-detail.test.js test/admin.test.js",
+    "test": "node --test test/catalog.test.js test/product-detail.test.js test/admin.test.js test/security.test.js test/validate.test.js test/ratelimit.test.js test/fase5.test.js",
     "test:sin-bd": "node --test test/security.test.js test/validate.test.js test/ratelimit.test.js test/fase5.test.js"
   },
   "dependencies": {
