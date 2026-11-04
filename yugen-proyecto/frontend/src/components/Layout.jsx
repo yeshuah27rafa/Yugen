@@ -20,6 +20,7 @@ export default function Layout() {
       </main>
       <footer className="site-footer">
         <span>© Yugen · Nombre provisional</span>
+        <Link to="/admin">Administración</Link>
       </footer>
     </>
   );

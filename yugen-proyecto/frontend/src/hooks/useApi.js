@@ -1,11 +1,11 @@
 // hooks/useApi.js
-// Pide datos a la API y expone estado de carga, error (con código HTTP) y datos.
-// Ignora respuestas viejas si cambia la ruta.
-import { useEffect, useState } from "react";
+// Pide datos a la API y expone estado de carga, error (con código HTTP), datos y una función para recargar.
+import { useCallback, useEffect, useState } from "react";
 import { apiGet } from "../api/client.js";
 
 export function useApi(path) {
   const [state, setState] = useState({ status: "loading", data: null, error: "", httpStatus: 0 });
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -20,7 +20,11 @@ export function useApi(path) {
     return () => {
       active = false;
     };
-  }, [path]);
+  }, [path, version]);
 
-  return state;
+  const reload = useCallback(() => {
+    setVersion((current) => current + 1);
+  }, []);
+
+  return Object.assign({}, state, { reload });
 }

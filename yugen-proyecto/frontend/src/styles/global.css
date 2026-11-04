@@ -258,3 +258,42 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
   .detail__layout { grid-template-columns: 1fr; gap: 32px; }
   .specs div { grid-template-columns: 110px 1fr; }
 }
+
+/* ---------- Administración (fase 4) ---------- */
+.admin-page { padding: 48px 0 24px; }
+.admin-login { max-width: 420px; display: grid; gap: 20px; }
+.admin-login h1 { font-size: 36px; }
+.admin-stack { display: grid; gap: 16px; }
+.admin-panel__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--linea); }
+.admin-panel__head h1 { font-size: 36px; }
+.admin-panel__actions { display: flex; gap: 12px; align-items: center; }
+.btn-ghost {
+  padding: 12px 18px; background: transparent; color: var(--azul); cursor: pointer;
+  border: 1px solid var(--azul); border-radius: 2px; font: 600 14px var(--sans);
+}
+.btn-ghost:hover { background: var(--azul); color: var(--crema); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.admin-table-wrap { overflow-x: auto; margin-top: 24px; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.admin-table th, .admin-table td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--linea); vertical-align: middle; }
+.admin-table th { font-weight: 600; color: var(--tinta); }
+.admin-table__actions { white-space: nowrap; }
+.admin-table__actions .link-button { margin-right: 16px; }
+.link-button--danger { color: var(--rojo); }
+.admin-form { display: grid; gap: 20px; margin-top: 24px; padding: 28px; background: var(--papel); border: 1px solid var(--linea); }
+.admin-form h2 { font-size: 26px; }
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.admin-form .field input, .admin-form .field select, .admin-form .field textarea, .admin-row input {
+  font: 15px var(--sans); color: var(--azul); padding: 10px 12px; background: var(--crema);
+  border: 1px solid var(--linea); border-radius: 2px; width: 100%;
+}
+.field--check { display: flex; align-items: center; gap: 8px; }
+.field--check input { width: auto; }
+.admin-fieldset { border: 1px solid var(--linea); padding: 16px; display: grid; gap: 12px; margin: 0; }
+.admin-fieldset legend { font-size: 14px; color: var(--tinta); padding: 0 6px; }
+.admin-row { display: grid; grid-template-columns: 2fr 1.2fr auto auto; gap: 10px; align-items: center; }
+.admin-row--spec { grid-template-columns: 1fr 1fr auto; }
+@media (max-width: 760px) {
+  .admin-grid { grid-template-columns: 1fr; }
+  .admin-row, .admin-row--spec { grid-template-columns: 1fr; }
+}

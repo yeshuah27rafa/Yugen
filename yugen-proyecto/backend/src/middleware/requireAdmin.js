@@ -1,11 +1,11 @@
 // middleware/requireAdmin.js
-// Verifica el JWT del administrador. En la etapa 4 este token pasará a cookie httpOnly.
+// Verifica la sesión del administrador leyendo la cookie httpOnly (el navegador la envía sola, JavaScript no la ve).
 const jwt = require("jsonwebtoken");
+const { SESSION_COOKIE } = require("../utils/cookies");
 
 module.exports = function requireAdmin(req, res, next) {
-  const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
-  if (token === "") {
+  const token = req.cookies ? req.cookies[SESSION_COOKIE] : undefined;
+  if (token === undefined || token === "") {
     return res.status(401).json({ error: "Inicia sesión como administrador." });
   }
   try {

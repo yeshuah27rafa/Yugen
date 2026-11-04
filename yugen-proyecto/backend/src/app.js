@@ -1,32 +1,43 @@
 // app.js
-// Configura la aplicación Express: CORS, rutas y manejo de errores. No abre puertos (eso lo hace server.js).
+// Configura la aplicación Express: seguridad de cabeceras, CORS con credenciales, rutas y errores.
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
+const adminRoutes = require("./routes/admin");
 const worksRoutes = require("./routes/works");
 const productsRoutes = require("./routes/products");
 const contactRoutes = require("./routes/contact");
 
 const app = express();
 
-// Solo el origen del frontend puede consumir la API desde el navegador.
-app.use(cors({ origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173" }));
-app.use(express.json());
+app.use(helmet());
+// Solo el origen del frontend puede leer respuestas. credentials permite enviar la cookie de sesión.
+app.use(cors({ origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173", credentials: true }));
+app.use(cookieParser());
+app.use(express.json({ limit: "100kb" }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/works", worksRoutes);
 app.use("/api/products", productsRoutes);
 app.use("/api/contact", contactRoutes);
 
-// Ruta inexistente de la API.
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "Ruta no encontrada." });
 });
 
 // Manejador central de errores: no expone detalles internos al cliente.
 app.use((error, req, res, next) => {
+  if (error.code === 11000) {
+    return res.status(409).json({ error: "Ya existe una pieza con ese enlace (slug). Cámbialo e intenta de nuevo." });
+  }
   if (error.name === "ValidationError") {
     return res.status(400).json({ error: "Faltan datos o son inválidos." });
+  }
+  if (error.type === "entity.too.large") {
+    return res.status(413).json({ error: "La solicitud es demasiado grande." });
   }
   console.error(error);
   return res.status(500).json({ error: "Error interno del servidor." });
