@@ -9,8 +9,10 @@ export default function Admin() {
   const [session, setSession] = useState({ status: "checking", email: "" });
   const [logoutError, setLogoutError] = useState("");
 
-  // El panel no debe aparecer en buscadores.
+  // El panel no debe aparecer en buscadores. Al salir de /admin se restauran el título y la indexación
+  // de la portada, porque la navegación es de una sola página y los cambios no se revierten solos.
   useEffect(() => {
+    const defaultTitle = "Yugen · Anime y manga con criterio";
     document.title = "Administración · Yugen";
     let meta = document.querySelector('meta[name="robots"]');
     if (meta === null) {
@@ -19,6 +21,10 @@ export default function Admin() {
       document.head.appendChild(meta);
     }
     meta.setAttribute("content", "noindex, nofollow");
+    return () => {
+      document.title = defaultTitle;
+      meta.setAttribute("content", "index, follow");
+    };
   }, []);
 
   useEffect(() => {
