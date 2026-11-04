@@ -1,13 +1,23 @@
 // routes/contact.js
 // Formulario de contacto público. Valida los datos antes de guardar y asocia la consulta a un producto si se indica.
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 const Contact = require("../models/Contact");
 const Product = require("../models/Product");
 const asyncHandler = require("../utils/asyncHandler");
 
 const router = express.Router();
 
-router.post("/", asyncHandler(async (req, res) => {
+// Límite de envíos por IP en 15 minutos para evitar spam (configurable con CONTACT_MAX_ATTEMPTS).
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: Number(process.env.CONTACT_MAX_ATTEMPTS || 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Has enviado demasiados mensajes. Espera unos minutos e intenta de nuevo." }
+});
+
+router.post("/", contactLimiter, asyncHandler(async (req, res) => {
   const name = String(req.body.name || "").trim();
   const email = String(req.body.email || "").trim();
   const message = String(req.body.message || "").trim();

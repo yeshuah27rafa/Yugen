@@ -1,8 +1,18 @@
 // components/Layout.jsx
 // Estructura común de todas las páginas: aviso superior, encabezado, contenido y pie.
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 export default function Layout() {
+  const location = useLocation();
+
+  // Al cambiar de ruta, el foco va al contenido principal para que el teclado y los lectores de pantalla
+  // anuncien la nueva página. preventScroll evita saltos de posición al cambiar de página.
+  useEffect(() => {
+    const main = document.getElementById("main");
+    if (main !== null) main.focus({ preventScroll: true });
+  }, [location.pathname]);
+
   return (
     <>
       <a className="skip-link" href="#main">Saltar al contenido</a>
@@ -15,7 +25,7 @@ export default function Layout() {
           <Link to="/#contacto">Contacto</Link>
         </nav>
       </header>
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         <Outlet />
       </main>
       <footer className="site-footer">

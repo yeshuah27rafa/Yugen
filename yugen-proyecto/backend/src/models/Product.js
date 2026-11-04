@@ -42,4 +42,9 @@ productSchema.virtual("mainImage").get(function getMainImage() {
 // Incluye los virtuales al convertir a JSON para que la API entregue mainImage.
 productSchema.set("toJSON", { virtuals: true });
 
+// Índices para las consultas frecuentes: catálogo por categoría y obra, destacados y novedades.
+productSchema.index({ category: 1, createdAt: -1 });
+productSchema.index({ work: 1, createdAt: -1 });
+productSchema.index({ featured: 1, updatedAt: -1 });
+
 module.exports = mongoose.model("Product", productSchema);

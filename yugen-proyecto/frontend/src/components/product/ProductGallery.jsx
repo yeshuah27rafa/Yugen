@@ -16,7 +16,7 @@ export default function ProductGallery({ images, name }) {
   return (
     <figure className="gallery">
       <div className="gallery__main">
-        <img src={current.url} alt={current.alt || name} />
+        <img src={current.url} alt={current.alt || name} decoding="async" />
       </div>
       {list.length > 1 ? (
         <ul className="gallery__thumbs" aria-label="Imágenes del producto">

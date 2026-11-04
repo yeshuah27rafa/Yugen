@@ -9,7 +9,7 @@ export default function ProductCard({ product }) {
     <Link className="product-card" to={`/producto/${product.slug}`}>
       <div className="product-card__media">
         {image ? (
-          <img src={image.url} alt={image.alt || product.name} loading="lazy" />
+          <img src={image.url} alt={image.alt || product.name} loading="lazy" decoding="async" />
         ) : (
           <span className="product-card__empty">Sin imagen</span>
         )}

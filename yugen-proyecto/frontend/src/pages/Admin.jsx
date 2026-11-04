@@ -9,6 +9,18 @@ export default function Admin() {
   const [session, setSession] = useState({ status: "checking", email: "" });
   const [logoutError, setLogoutError] = useState("");
 
+  // El panel no debe aparecer en buscadores.
+  useEffect(() => {
+    document.title = "Administración · Yugen";
+    let meta = document.querySelector('meta[name="robots"]');
+    if (meta === null) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "robots");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", "noindex, nofollow");
+  }, []);
+
   useEffect(() => {
     apiGet("/auth/me")
       .then((data) => {

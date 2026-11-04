@@ -88,6 +88,9 @@ export default function CatalogFilters({ filters, works, onChange }) {
           </select>
         </div>
       </div>
+      {works.status === "error" ? (
+        <p className="status status--error" role="alert">No pudimos cargar la lista de obras. Los demás filtros siguen funcionando.</p>
+      ) : null}
     </div>
   );
 }

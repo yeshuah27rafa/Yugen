@@ -9,6 +9,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const requireAdmin = require("../middleware/requireAdmin");
 const csrfProtection = require("../middleware/csrfProtection");
 const { SESSION_COOKIE, sessionCookieOptions, baseOptions } = require("../utils/cookies");
+const { revoke } = require("../utils/revokedSessions");
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.post("/login", loginLimiter, asyncHandler(async (req, res) => {
 
   // El token CSRF viaja dentro de la sesión firmada: no es legible desde cookies ni desde otros sitios.
   const csrfToken = crypto.randomBytes(32).toString("hex");
-  const session = jwt.sign({ email, csrf: csrfToken }, process.env.JWT_SECRET, { algorithm: "HS256", expiresIn: "2h" });
+  const session = jwt.sign({ email, csrf: csrfToken, jti: crypto.randomUUID() }, process.env.JWT_SECRET, { algorithm: "HS256", expiresIn: "2h" });
   res.cookie(SESSION_COOKIE, session, sessionCookieOptions());
   return res.json({ email, csrfToken });
 }));
@@ -42,6 +43,7 @@ router.get("/me", requireAdmin, (req, res) => {
 });
 
 router.post("/logout", requireAdmin, csrfProtection, (req, res) => {
+  revoke(req.admin.jti, req.admin.exp);
   res.clearCookie(SESSION_COOKIE, baseOptions());
   return res.json({ ok: true });
 });
