@@ -1,13 +1,14 @@
 // components/Layout.jsx
-// Estructura común de todas las páginas: aviso superior, encabezado, contenido y pie.
+// Estructura común de todas las páginas: aviso superior, encabezado con carrito, contenido y pie.
 import { useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { useCart } from "../hooks/useCart.js";
 
 export default function Layout() {
   const location = useLocation();
+  const cartLines = useCart();
 
-  // Al cambiar de ruta, el foco va al contenido principal para que el teclado y los lectores de pantalla
-  // anuncien la nueva página. preventScroll evita saltos de posición al cambiar de página.
+  // Al cambiar de página, el foco va al contenido principal (teclado y lectores de pantalla).
   useEffect(() => {
     const main = document.getElementById("main");
     if (main !== null) main.focus({ preventScroll: true });
@@ -22,6 +23,7 @@ export default function Layout() {
         <nav aria-label="Principal">
           <NavLink to="/" end>Inicio</NavLink>
           <NavLink to="/catalogo">Catálogo</NavLink>
+          <NavLink to="/carrito">Carrito ({cartLines.length})</NavLink>
           <Link to="/#contacto">Contacto</Link>
         </nav>
       </header>

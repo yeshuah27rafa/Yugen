@@ -309,3 +309,15 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
   background: var(--crema); border: 1px solid var(--linea); border-radius: 2px;
 }
 .cuenta-form .field input[type="checkbox"] { width: auto; }
+
+/* ---------- Carrito y solicitudes (fase 8) ---------- */
+.cart-page { padding: 56px 0 48px; max-width: 760px; display: grid; gap: 20px; }
+.cart-page h1 { font-size: 36px; }
+.cart-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.cart-line { display: flex; justify-content: space-between; gap: 16px; padding: 16px; background: var(--papel); border: 1px solid var(--linea); }
+.cart-line h2 { font-size: 20px; }
+.cart-line__actions { display: flex; align-items: flex-end; gap: 16px; }
+.cart-line__actions input { width: 90px; padding: 8px; font: 15px var(--sans); background: var(--crema); border: 1px solid var(--linea); }
+.cart-summary, .cart-login-required { padding: 20px; background: var(--papel); border: 1px solid var(--linea); display: grid; gap: 10px; }
+.alert-box { padding: 16px; background: var(--papel); border: 2px solid var(--rojo); display: grid; gap: 8px; color: var(--azul); }
+.add-to-cart { display: grid; gap: 8px; }

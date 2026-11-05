@@ -11,6 +11,7 @@ const BCRYPT_COST = 12;
 const VERIFY_HOURS = 24;
 const RESET_HOURS = 1;
 const PRIVACY_NOTICE_VERSION = "2026-11-01";
+const EXISTING_ACCOUNT_MESSAGE = "Ya existe una cuenta con este correo. Inicia sesión o recupera tu contraseña.";
 
 // Hash ficticio para comparar tiempos cuando el correo no existe y la respuesta no tarda menos.
 const DUMMY_HASH = bcrypt.hashSync("clave-ficticia-para-igualar-tiempos", BCRYPT_COST);
@@ -56,8 +57,9 @@ async function register(input) {
   if (errors.length > 0) throw fail(400, errors.join(" "));
 
   const email = normalizeEmail(input.email);
+  // D18: el cliente debe saber que ya tiene cuenta. El límite de registros por IP limita el sondeo.
   const existing = await Customer.findOne({ email });
-  if (existing !== null) return;
+  if (existing !== null) throw fail(409, EXISTING_ACCOUNT_MESSAGE);
 
   const verification = generateToken();
   const passwordHash = await bcrypt.hash(String(input.password), BCRYPT_COST);
@@ -73,8 +75,8 @@ async function register(input) {
     });
     await sendVerificationEmail(customer, verification.raw);
   } catch (error) {
-    // Carrera entre dos registros del mismo correo: se trata como registro exitoso y genérico.
-    if (error.code === 11000) return;
+    // Carrera entre dos registros del mismo correo: mismo mensaje que si la cuenta ya existía.
+    if (error.code === 11000) throw fail(409, EXISTING_ACCOUNT_MESSAGE);
     throw error;
   }
 }

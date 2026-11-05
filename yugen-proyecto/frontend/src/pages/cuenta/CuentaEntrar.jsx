@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { clientePost, setCustomerCsrfToken } from "../../api/client.js";
+import { syncCartAfterLogin } from "../../utils/cartSync.js";
 import LoginAttemptsNotice from "../../components/cuenta/LoginAttemptsNotice.jsx";
 
 export default function CuentaEntrar() {
@@ -22,6 +23,7 @@ export default function CuentaEntrar() {
         password: data.get("password")
       });
       setCustomerCsrfToken(session.csrfToken);
+      await syncCartAfterLogin();
       navigate("/cuenta");
     } catch (failure) {
       setError(failure.message);

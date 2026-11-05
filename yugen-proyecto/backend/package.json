@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --test test/catalog.test.js test/product-detail.test.js test/admin.test.js test/fase7-cuentas.test.js test/security.test.js test/validate.test.js test/ratelimit.test.js test/fase5.test.js test/fase7-config-mail.test.js test/fase7-sesiones-contador.test.js",
-    "test:sin-bd": "node --test test/security.test.js test/validate.test.js test/ratelimit.test.js test/fase5.test.js test/fase7-config-mail.test.js test/fase7-sesiones-contador.test.js"
+    "test": "node --test test/catalog.test.js test/product-detail.test.js test/admin.test.js test/fase7-cuentas.test.js test/fase8-solicitudes.test.js test/security.test.js test/validate.test.js test/ratelimit.test.js test/fase5.test.js test/fase7-config-mail.test.js test/fase7-sesiones-contador.test.js test/fase8-logica.test.js",
+    "test:sin-bd": "node --test test/security.test.js test/validate.test.js test/ratelimit.test.js test/fase5.test.js test/fase7-config-mail.test.js test/fase7-sesiones-contador.test.js test/fase8-logica.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

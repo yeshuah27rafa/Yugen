@@ -1,6 +1,5 @@
 // App.jsx
-// Mapa de rutas. Las páginas de administración y de cuentas se cargan bajo demanda:
-// la portada pública no descarga el código de esas áreas.
+// Mapa de rutas. Administración, cuentas, carrito y solicitudes se cargan bajo demanda.
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
@@ -16,6 +15,8 @@ const CuentaEntrar = lazy(() => import("./pages/cuenta/CuentaEntrar.jsx"));
 const CuentaVerificar = lazy(() => import("./pages/cuenta/CuentaVerificar.jsx"));
 const CuentaRecuperar = lazy(() => import("./pages/cuenta/CuentaRecuperar.jsx"));
 const CuentaRestablecer = lazy(() => import("./pages/cuenta/CuentaRestablecer.jsx"));
+const Carrito = lazy(() => import("./pages/tienda/Carrito.jsx"));
+const Solicitud = lazy(() => import("./pages/tienda/Solicitud.jsx"));
 
 const LOADING = <section className="admin-page"><p className="status">Cargando…</p></section>;
 
@@ -31,6 +32,8 @@ export default function App() {
         <Route index element={<Home />} />
         <Route path="catalogo" element={<Catalog />} />
         <Route path="producto/:slug" element={<ProductDetail />} />
+        <Route path="carrito" element={lazyPage(<Carrito />)} />
+        <Route path="solicitud" element={lazyPage(<Solicitud />)} />
         <Route path="cuenta" element={lazyPage(<Cuenta />)} />
         <Route path="cuenta/registro" element={lazyPage(<CuentaRegistro />)} />
         <Route path="cuenta/entrar" element={lazyPage(<CuentaEntrar />)} />

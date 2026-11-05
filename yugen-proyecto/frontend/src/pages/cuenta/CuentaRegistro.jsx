@@ -1,19 +1,20 @@
 // pages/cuenta/CuentaRegistro.jsx
-// Registro de cliente. La respuesta es la misma exista o no el correo.
+// Registro de cliente. Si el correo ya tiene cuenta (409), muestra una alerta con las salidas posibles.
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { apiPost } from "../../api/client.js";
 
 export default function CuentaRegistro() {
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState({ text: "", exists: false });
 
   async function handleSubmit(event) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
     setSending(true);
-    setError("");
+    setError({ text: "", exists: false });
     setMessage("");
     try {
       const response = await apiPost("/cuenta/registro", {
@@ -25,7 +26,7 @@ export default function CuentaRegistro() {
       form.reset();
       setMessage(response.message);
     } catch (failure) {
-      setError(failure.message);
+      setError({ text: failure.message, exists: failure.status === 409 });
     } finally {
       setSending(false);
     }
@@ -49,7 +50,17 @@ export default function CuentaRegistro() {
           <button className="button" type="submit" disabled={sending}>{sending ? "Creando…" : "Crear cuenta"}</button>
         </div>
         <p className="status" role="status">{message}</p>
-        <p className="status status--error" role="alert">{error}</p>
+        {error.text !== "" ? (
+          <div className={error.exists ? "alert-box" : "status status--error"} role="alert">
+            <p>{error.text}</p>
+            {error.exists ? (
+              <p className="form-foot">
+                <Link className="link-button" to="/cuenta/entrar">Entrar</Link>
+                <Link className="link-button" to="/cuenta/recuperar">Recuperar contraseña</Link>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </form>
     </section>
   );

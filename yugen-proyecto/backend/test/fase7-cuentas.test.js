@@ -68,14 +68,13 @@ after(async () => {
   await mongo.stop();
 });
 
-test("el registro responde igual para un correo nuevo y uno ya registrado", async () => {
+test("el registro de un correo ya existente muestra alerta explícita (409)", async () => {
   const first = await post("/cuenta/registro", { name: "Ana Prueba", email: "nuevo@yugen.test", password: PASSWORD, privacyAccepted: true });
   const second = await post("/cuenta/registro", { name: "Ana Prueba", email: "nuevo@yugen.test", password: PASSWORD, privacyAccepted: true });
-  const a = await first.json();
-  const b = await second.json();
+  const body = await second.json();
   assert.strictEqual(first.status, 202);
-  assert.strictEqual(second.status, 202);
-  assert.strictEqual(a.message, b.message);
+  assert.strictEqual(second.status, 409);
+  assert.match(body.error, /Ya existe una cuenta/);
 });
 
 test("el registro sin aceptar el aviso de privacidad responde 400", async () => {

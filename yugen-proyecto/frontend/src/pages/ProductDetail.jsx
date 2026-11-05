@@ -5,6 +5,7 @@ import { useApi } from "../hooks/useApi.js";
 import { availabilityLabel, categoryLabel, formatPrice } from "../utils/format.js";
 import ProductGallery from "../components/product/ProductGallery.jsx";
 import ProductInquiry from "../components/product/ProductInquiry.jsx";
+import AddToCartButton from "../components/cart/AddToCartButton.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import DataState from "../components/DataState.jsx";
 
@@ -70,6 +71,7 @@ export default function ProductDetail() {
             </section>
           ) : null}
 
+          <AddToCartButton productId={item._id} availability={item.availability} />
           <ProductInquiry product={item} />
         </div>
       </div>

@@ -1,15 +1,27 @@
 // config/env.js
 // Lectura y validación centralizada de variables de entorno.
+const crypto = require("crypto");
 // Se lee en cada llamada para que las pruebas puedan cambiar process.env antes de usar la configuración.
+
+// En desarrollo, si no existe CUSTOMER_JWT_SECRET, se deriva de JWT_SECRET con una etiqueta fija.
+// Así el secreto de clientes sigue siendo distinto del administrativo sin pedir una variable nueva.
+// En producción no se deriva: la variable es obligatoria.
+function deriveCustomerSecret(jwtSecret) {
+  return crypto.createHmac("sha256", jwtSecret).update("yugen-customer-session").digest("hex");
+}
 
 function readConfig(env) {
   const source = env || process.env;
+  const nodeEnv = source.NODE_ENV || "development";
+  const jwtSecret = source.JWT_SECRET || "";
+  const explicitCustomerSecret = source.CUSTOMER_JWT_SECRET || "";
+  const canDerive = nodeEnv !== "production" && jwtSecret !== "";
   return {
-    nodeEnv: source.NODE_ENV || "development",
+    nodeEnv: nodeEnv,
     mongodbUri: source.MONGODB_URI || "",
     port: Number(source.PORT || 4000),
-    jwtSecret: source.JWT_SECRET || "",
-    customerJwtSecret: source.CUSTOMER_JWT_SECRET || "",
+    jwtSecret: jwtSecret,
+    customerJwtSecret: explicitCustomerSecret !== "" ? explicitCustomerSecret : (canDerive ? deriveCustomerSecret(jwtSecret) : ""),
     adminEmail: source.ADMIN_EMAIL || "",
     adminPasswordHash: source.ADMIN_PASSWORD_HASH || "",
     frontendOrigin: source.FRONTEND_ORIGIN || "http://localhost:5173",
@@ -19,7 +31,10 @@ function readConfig(env) {
     loginMaxAttempts: Number(source.LOGIN_MAX_ATTEMPTS || 5),
     contactMaxAttempts: Number(source.CONTACT_MAX_ATTEMPTS || 10),
     cookieSameSite: source.COOKIE_SAMESITE || "lax",
-    trustProxy: source.TRUST_PROXY || ""
+    trustProxy: source.TRUST_PROXY || "",
+    // Contacto que se muestra a quien no quiere crear cuenta. Se configura cuando el desarrollador lo indique.
+    contactEmail: source.CONTACT_EMAIL || "",
+    contactWhatsapp: source.CONTACT_WHATSAPP || ""
   };
 }
 

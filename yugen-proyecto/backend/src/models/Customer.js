@@ -15,7 +15,14 @@ const customerSchema = new mongoose.Schema({
   resetTokenHash: { type: String, default: null },
   resetTokenExpires: { type: Date, default: null },
   privacyNoticeVersion: { type: String, default: "" },
-  privacyAcceptedAt: { type: Date, default: null }
+  privacyAcceptedAt: { type: Date, default: null },
+  // Carrito guardado en la cuenta. Se fusiona con el del navegador al iniciar sesión.
+  savedCart: {
+    type: [{ product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" }, quantity: { type: Number, min: 1, max: 10 } }],
+    default: []
+  },
+  // Solicitudes en estado "nueva". Se modifica solo con operaciones atómicas (ver requestService).
+  pendingRequestCount: { type: Number, default: 0, min: 0 }
 }, { timestamps: true });
 
 // Consultas de tokens: índices dispersos para no ocupar espacio en cuentas sin token.
