@@ -1,5 +1,6 @@
 // App.jsx
-// Mapa de rutas. El panel de administración se carga bajo demanda para no pesar en la portada pública.
+// Mapa de rutas. Las páginas de administración y de cuentas se cargan bajo demanda:
+// la portada pública no descarga el código de esas áreas.
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
@@ -9,6 +10,19 @@ import ProductDetail from "./pages/ProductDetail.jsx";
 import ComingSoon from "./pages/ComingSoon.jsx";
 
 const Admin = lazy(() => import("./pages/Admin.jsx"));
+const Cuenta = lazy(() => import("./pages/cuenta/Cuenta.jsx"));
+const CuentaRegistro = lazy(() => import("./pages/cuenta/CuentaRegistro.jsx"));
+const CuentaEntrar = lazy(() => import("./pages/cuenta/CuentaEntrar.jsx"));
+const CuentaVerificar = lazy(() => import("./pages/cuenta/CuentaVerificar.jsx"));
+const CuentaRecuperar = lazy(() => import("./pages/cuenta/CuentaRecuperar.jsx"));
+const CuentaRestablecer = lazy(() => import("./pages/cuenta/CuentaRestablecer.jsx"));
+
+const LOADING = <section className="admin-page"><p className="status">Cargando…</p></section>;
+
+// Envuelve una página diferida con su estado de carga.
+function lazyPage(element) {
+  return <Suspense fallback={LOADING}>{element}</Suspense>;
+}
 
 export default function App() {
   return (
@@ -17,14 +31,13 @@ export default function App() {
         <Route index element={<Home />} />
         <Route path="catalogo" element={<Catalog />} />
         <Route path="producto/:slug" element={<ProductDetail />} />
-        <Route
-          path="admin"
-          element={
-            <Suspense fallback={<section className="admin-page"><p className="status">Cargando…</p></section>}>
-              <Admin />
-            </Suspense>
-          }
-        />
+        <Route path="cuenta" element={lazyPage(<Cuenta />)} />
+        <Route path="cuenta/registro" element={lazyPage(<CuentaRegistro />)} />
+        <Route path="cuenta/entrar" element={lazyPage(<CuentaEntrar />)} />
+        <Route path="cuenta/verificar" element={lazyPage(<CuentaVerificar />)} />
+        <Route path="cuenta/recuperar" element={lazyPage(<CuentaRecuperar />)} />
+        <Route path="cuenta/restablecer" element={lazyPage(<CuentaRestablecer />)} />
+        <Route path="admin" element={lazyPage(<Admin />)} />
         <Route path="*" element={<ComingSoon title="Página no encontrada" stage="" />} />
       </Route>
     </Routes>

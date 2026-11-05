@@ -6,6 +6,7 @@ const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
+const customerAuthRoutes = require("./routes/customerAuth");
 const worksRoutes = require("./routes/works");
 const productsRoutes = require("./routes/products");
 const contactRoutes = require("./routes/contact");
@@ -25,6 +26,7 @@ app.use(express.json({ limit: "100kb" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/cuenta", customerAuthRoutes);
 app.use("/api/works", worksRoutes);
 app.use("/api/products", productsRoutes);
 app.use("/api/contact", contactRoutes);
@@ -40,6 +42,10 @@ app.use((error, req, res, next) => {
   }
   if (error.type === "entity.too.large") {
     return res.status(413).json({ error: "La solicitud es demasiado grande." });
+  }
+  // Errores de servicio con código HTTP explícito (validación, token inválido, credenciales).
+  if (error.status === 400 || error.status === 401 || error.status === 403) {
+    return res.status(error.status).json({ error: error.message });
   }
   if (error.code === 11000) {
     return res.status(409).json({ error: "Ya existe una pieza con ese enlace (slug). Cámbialo e intenta de nuevo." });

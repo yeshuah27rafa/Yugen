@@ -1,8 +1,9 @@
 // middleware/requireAdmin.js
-// Verifica la sesión del administrador leyendo la cookie httpOnly (el navegador la envía sola, JavaScript no la ve).
+// Verifica la sesión del administrador: cookie httpOnly, firma HS256, audiencia "admin" y no revocada.
 const jwt = require("jsonwebtoken");
 const { SESSION_COOKIE } = require("../utils/cookies");
 const { isRevoked } = require("../utils/revokedSessions");
+const { readConfig } = require("../config/env");
 
 module.exports = function requireAdmin(req, res, next) {
   const token = req.cookies ? req.cookies[SESSION_COOKIE] : undefined;
@@ -10,10 +11,11 @@ module.exports = function requireAdmin(req, res, next) {
     return res.status(401).json({ error: "Inicia sesión como administrador." });
   }
   try {
-    req.admin = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
-    if (isRevoked(req.admin.jti)) {
+    const payload = jwt.verify(token, readConfig().jwtSecret, { algorithms: ["HS256"], audience: "admin" });
+    if (isRevoked(payload.jti)) {
       return res.status(401).json({ error: "Tu sesión se cerró. Vuelve a iniciar sesión." });
     }
+    req.admin = payload;
     return next();
   } catch (error) {
     return res.status(401).json({ error: "Tu sesión expiró. Vuelve a iniciar sesión." });

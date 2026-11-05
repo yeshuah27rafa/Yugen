@@ -1,5 +1,5 @@
 // routes/auth.js
-// Inicio de sesión del administrador: cookie httpOnly, límite de intentos y token CSRF.
+// Inicio de sesión del administrador: cookie httpOnly, contador de fallos y token CSRF.
 const express = require("express");
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
@@ -10,34 +10,48 @@ const requireAdmin = require("../middleware/requireAdmin");
 const csrfProtection = require("../middleware/csrfProtection");
 const { SESSION_COOKIE, sessionCookieOptions, baseOptions } = require("../utils/cookies");
 const { revoke } = require("../utils/revokedSessions");
+const { readConfig } = require("../config/env");
 
 const router = express.Router();
+const WINDOW_MS = 15 * 60 * 1000;
 
-// Máximo de intentos de login por IP en 15 minutos (configurable desde el entorno).
+// Solo cuentan los intentos fallidos: un acceso correcto no consume cupo.
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: Number(process.env.LOGIN_MAX_ATTEMPTS || 5),
+  windowMs: WINDOW_MS,
+  limit: readConfig().loginMaxAttempts,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Demasiados intentos. Espera 15 minutos e intenta de nuevo." }
+  skipSuccessfulRequests: true,
+  handler: (req, res) => {
+    const retryAfterSeconds = Math.max(1, Math.ceil((req.rateLimit.resetTime.getTime() - Date.now()) / 1000));
+    return res.status(429).json({
+      error: "Demasiados intentos fallidos. Espera antes de volver a intentarlo.",
+      retryAfterSeconds
+    });
+  }
 });
 
 router.post("/login", loginLimiter, asyncHandler(async (req, res) => {
+  const config = readConfig();
   const email = String(req.body.email || "");
   const password = String(req.body.password || "");
-  const passwordOk = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH || "");
-  if (email !== process.env.ADMIN_EMAIL || passwordOk === false) {
-    return res.status(401).json({ error: "Correo o contraseña incorrectos." });
+  const passwordOk = await bcrypt.compare(password, config.adminPasswordHash || "");
+  if (email !== config.adminEmail || passwordOk === false) {
+    const remainingAttempts = req.rateLimit ? Math.max(0, req.rateLimit.remaining) : undefined;
+    return res.status(401).json({ error: "Correo o contraseña incorrectos.", remainingAttempts });
   }
 
-  // El token CSRF viaja dentro de la sesión firmada: no es legible desde cookies ni desde otros sitios.
+  // El token CSRF viaja dentro de la sesión firmada. El identificador jti permite revocar esta sesión.
   const csrfToken = crypto.randomBytes(32).toString("hex");
-  const session = jwt.sign({ email, csrf: csrfToken, jti: crypto.randomUUID() }, process.env.JWT_SECRET, { algorithm: "HS256", expiresIn: "2h" });
+  const session = jwt.sign(
+    { email, csrf: csrfToken, jti: crypto.randomUUID(), aud: "admin" },
+    config.jwtSecret,
+    { algorithm: "HS256", expiresIn: "2h" }
+  );
   res.cookie(SESSION_COOKIE, session, sessionCookieOptions());
   return res.json({ email, csrfToken });
 }));
 
-// Datos de la sesión actual. La página lo usa al cargar para saber si hay sesión activa.
 router.get("/me", requireAdmin, (req, res) => {
   return res.json({ email: req.admin.email, csrfToken: req.admin.csrf });
 });

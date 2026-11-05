@@ -3,9 +3,8 @@
 .env.*
 !.env.example
 
-# Dependencias Node.js
+# Dependencias de Node.js
 node_modules/
 
 # Archivos generados
 dist/
-coverage/

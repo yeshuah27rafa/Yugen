@@ -298,3 +298,14 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
   .admin-grid { grid-template-columns: 1fr; }
   .admin-row, .admin-row--spec { grid-template-columns: 1fr; }
 }
+
+/* ---------- Cuentas de cliente (fase 7) ---------- */
+.cuenta-page { padding: 64px 0 48px; max-width: 520px; display: grid; gap: 20px; }
+.cuenta-page h1 { font-size: 36px; }
+.cuenta-page h2 { font-size: 22px; }
+.cuenta-form { display: grid; gap: 16px; padding: 28px; background: var(--papel); border: 1px solid var(--linea); }
+.cuenta-form input {
+  font: 16px var(--sans); color: var(--azul); padding: 10px 12px; width: 100%;
+  background: var(--crema); border: 1px solid var(--linea); border-radius: 2px;
+}
+.cuenta-form .field input[type="checkbox"] { width: auto; }

@@ -2,10 +2,12 @@
 // Formulario de inicio de sesión. La sesión queda en una cookie httpOnly; aquí solo se recibe el token CSRF.
 import { useState } from "react";
 import { apiPost } from "../../api/client.js";
+import LoginAttemptsNotice from "../cuenta/LoginAttemptsNotice.jsx";
 
 export default function AdminLogin({ onLogin }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [attempts, setAttempts] = useState({ remainingAttempts: undefined, retryAfterSeconds: 0 });
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -20,6 +22,10 @@ export default function AdminLogin({ onLogin }) {
       onLogin(session);
     } catch (failure) {
       setError(failure.message);
+      setAttempts({
+        remainingAttempts: failure.data ? failure.data.remainingAttempts : undefined,
+        retryAfterSeconds: failure.data && failure.data.retryAfterSeconds ? failure.data.retryAfterSeconds : 0
+      });
       setSending(false);
     }
   }
@@ -41,6 +47,7 @@ export default function AdminLogin({ onLogin }) {
             {sending ? "Entrando…" : "Entrar"}
           </button>
           <p className="status status--error" role="alert">{error}</p>
+          <LoginAttemptsNotice remainingAttempts={attempts.remainingAttempts} retryAfterSeconds={attempts.retryAfterSeconds} />
         </div>
       </form>
     </div>

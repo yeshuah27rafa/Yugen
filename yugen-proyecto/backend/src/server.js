@@ -5,17 +5,15 @@ const mongoose = require("mongoose");
 const app = require("./app");
 const seedIfEmpty = require("./seed");
 
-const REQUIRED_ENV = ["MONGODB_URI", "JWT_SECRET", "ADMIN_EMAIL", "ADMIN_PASSWORD_HASH"];
+const { readConfig, validateConfig } = require("./config/env");
+
 const PORT = process.env.PORT || 4000;
 
-// Falla con un mensaje claro si falta configuración o el secreto es demasiado corto.
+// Falla con mensajes claros si la configuración no es válida para el servidor.
 function checkConfig() {
-  const missing = REQUIRED_ENV.filter((name) => process.env[name] === undefined || process.env[name] === "");
-  if (missing.length > 0) {
-    throw new Error(`Faltan variables de entorno: ${missing.join(", ")}`);
-  }
-  if (process.env.JWT_SECRET.length < 32) {
-    throw new Error("JWT_SECRET debe tener al menos 32 caracteres.");
+  const errors = validateConfig(readConfig(), { requireMongo: true });
+  if (errors.length > 0) {
+    throw new Error(errors.join(" "));
   }
 }
 
