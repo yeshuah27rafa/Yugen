@@ -321,3 +321,22 @@ main { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 .cart-summary, .cart-login-required { padding: 20px; background: var(--papel); border: 1px solid var(--linea); display: grid; gap: 10px; }
 .alert-box { padding: 16px; background: var(--papel); border: 2px solid var(--rojo); display: grid; gap: 8px; color: var(--azul); }
 .add-to-cart { display: grid; gap: 8px; }
+
+/* ---------- Administración: secciones, solicitudes y clientes (fases 9 y 10) ---------- */
+.admin-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.admin-nav__item { padding: 8px 16px; border: 1px solid var(--linea); background: var(--papel); cursor: pointer; font: 600 14px var(--sans); color: var(--azul); }
+.admin-nav__item--on { background: var(--azul); color: var(--crema); border-color: var(--azul); }
+.admin-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.admin-card { padding: 16px; background: var(--papel); border: 1px solid var(--linea); }
+.admin-card__value { font: 700 28px var(--serif); }
+.admin-filters { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.admin-filters .field { min-width: 220px; }
+.admin-split { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; align-items: start; }
+.admin-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.admin-list__item { width: 100%; text-align: left; padding: 10px 12px; background: var(--papel); border: 1px solid var(--linea); cursor: pointer; font: 15px var(--sans); color: var(--azul); }
+.admin-list__item--on { border-color: var(--azul); }
+.admin-detail { display: grid; gap: 12px; padding: 20px; background: var(--papel); border: 1px solid var(--linea); }
+.admin-lines { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.admin-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-message { padding: 12px; background: var(--papel); border: 1px solid var(--linea); display: grid; gap: 6px; }
+@media (max-width: 760px) { .admin-split { grid-template-columns: 1fr; } }

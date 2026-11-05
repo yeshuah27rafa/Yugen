@@ -1,6 +1,11 @@
 // routes/customerAuth.js
 // Rutas públicas y de sesión de cliente: registro, confirmación, inicio de sesión, recuperación y cambio de contraseña.
 const express = require("express");
+const bcrypt = require("bcryptjs");
+const Customer = require("../models/Customer");
+const { generateToken, hashToken, isWellFormedToken } = require("../services/tokenService");
+const { getMailer } = require("../mail");
+const requestService = require("../services/requestService");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
@@ -118,6 +123,85 @@ router.post("/clave", requireCustomer, customerCsrf, asyncHandler(async (req, re
   revoke(req.customer.jti, req.customer.exp);
   const csrfToken = issueCustomerSession(res, customer);
   return res.json({ ok: true, csrfToken });
+}));
+
+// Error con código HTTP para respuestas de esta área.
+function httpError(status, message) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
+// Datos de la cuenta: nombre editable. El correo se cambia con confirmación (ver abajo).
+router.put("/perfil", requireCustomer, customerCsrf, asyncHandler(async (req, res) => {
+  const name = String(req.body.name || "").trim();
+  if (name.length < 2 || name.length > 120) throw httpError(400, "El nombre debe tener entre 2 y 120 caracteres.");
+  await Customer.updateOne({ _id: req.customer.id }, { $set: { name } });
+  return res.json({ name });
+}));
+
+// Cambio de correo: exige la contraseña y envía un enlace al correo nuevo. Se aplica al confirmar.
+router.post("/correo", requireCustomer, customerCsrf, asyncHandler(async (req, res) => {
+  const customer = await Customer.findById(req.customer.id);
+  const passwordOk = await bcrypt.compare(String(req.body.password || ""), customer.passwordHash);
+  if (passwordOk === false) throw httpError(400, "La contraseña no es correcta.");
+  const newEmail = String(req.body.newEmail || "").trim().toLowerCase();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail) === false || newEmail.length > 254) {
+    throw httpError(400, "El correo no es válido.");
+  }
+  if (newEmail === customer.email) throw httpError(400, "Ese ya es tu correo.");
+  if (await Customer.exists({ email: newEmail })) throw httpError(409, "Ese correo ya tiene una cuenta.");
+
+  const token = generateToken();
+  customer.pendingEmail = newEmail;
+  customer.emailChangeTokenHash = token.hash;
+  customer.emailChangeExpires = new Date(Date.now() + 24 * 3600 * 1000);
+  await customer.save();
+  const config = readConfig();
+  await getMailer().send({
+    from: config.mailFrom,
+    to: newEmail,
+    subject: "Confirma tu nuevo correo en Yugen",
+    text: `Confirma el cambio de correo con este enlace (válido 24 horas):\n${config.publicAppUrl}/cuenta/correo/confirmar?token=${token.raw}`
+  });
+  return res.status(202).json({ message: "Te enviamos un enlace al nuevo correo para confirmarlo." });
+}));
+
+router.post("/correo/confirmar", asyncHandler(async (req, res) => {
+  const raw = req.body.token;
+  if (isWellFormedToken(raw) === false) throw httpError(400, "El enlace no es válido o ya caducó.");
+  const customer = await Customer.findOne({ emailChangeTokenHash: hashToken(raw), emailChangeExpires: { $gt: new Date() } });
+  if (customer === null || customer.pendingEmail === null) throw httpError(400, "El enlace no es válido o ya caducó.");
+  if (await Customer.exists({ email: customer.pendingEmail, _id: { $ne: customer._id } })) {
+    throw httpError(409, "Ese correo ya tiene una cuenta.");
+  }
+  customer.email = customer.pendingEmail;
+  customer.pendingEmail = null;
+  customer.emailChangeTokenHash = null;
+  customer.emailChangeExpires = null;
+  await customer.save();
+  return res.json({ ok: true, message: "Tu correo fue actualizado. Inicia sesión con el nuevo." });
+}));
+
+// Solicitudes propias: lista y detalle sin notas internas.
+router.get("/solicitudes", requireCustomer, asyncHandler(async (req, res) => {
+  return res.json({ requests: await requestService.listMyRequests(req.customer.id) });
+}));
+
+router.get("/solicitudes/:code", requireCustomer, asyncHandler(async (req, res) => {
+  const detail = await requestService.getMyRequest(req.customer.id, req.params.code);
+  if (detail === null) return res.status(404).json({ error: "Solicitud no encontrada." });
+  return res.json(detail);
+}));
+
+// Derecho de acceso: exporta los datos de la cuenta y sus solicitudes (sin contraseña ni tokens).
+router.get("/datos", requireCustomer, asyncHandler(async (req, res) => {
+  const customer = await Customer.findById(req.customer.id).select("name email createdAt emailVerifiedAt");
+  const requests = await requestService.listMyRequests(req.customer.id);
+  return res.json({
+    profile: { name: customer.name, email: customer.email, createdAt: customer.createdAt, emailVerifiedAt: customer.emailVerifiedAt },
+    requests
+  });
 }));
 
 module.exports = router;

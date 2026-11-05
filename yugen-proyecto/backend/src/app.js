@@ -48,7 +48,7 @@ app.use((error, req, res, next) => {
     return res.status(413).json({ error: "La solicitud es demasiado grande." });
   }
   // Errores de servicio con código HTTP explícito (validación, token inválido, credenciales).
-  if (error.status === 400 || error.status === 401 || error.status === 403 || error.status === 409) {
+  if (error.status === 400 || error.status === 401 || error.status === 403 || error.status === 404 || error.status === 409) {
     return res.status(error.status).json({ error: error.message });
   }
   if (error.code === 11000) {

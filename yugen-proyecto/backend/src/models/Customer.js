@@ -22,7 +22,11 @@ const customerSchema = new mongoose.Schema({
     default: []
   },
   // Solicitudes en estado "nueva". Se modifica solo con operaciones atómicas (ver requestService).
-  pendingRequestCount: { type: Number, default: 0, min: 0 }
+  pendingRequestCount: { type: Number, default: 0, min: 0 },
+  // Cambio de correo: el nuevo correo solo se aplica al confirmarlo desde el enlace.
+  pendingEmail: { type: String, default: null },
+  emailChangeTokenHash: { type: String, default: null },
+  emailChangeExpires: { type: Date, default: null }
 }, { timestamps: true });
 
 // Consultas de tokens: índices dispersos para no ocupar espacio en cuentas sin token.

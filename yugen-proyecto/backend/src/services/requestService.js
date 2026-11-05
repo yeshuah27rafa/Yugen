@@ -6,6 +6,7 @@ const Product = require("../models/Product");
 const Request = require("../models/Request");
 const { validateLines } = require("./cartService");
 const { normalizePanamaWhatsapp } = require("../utils/phone");
+const { notifyNewRequest } = require("./requestNotifications");
 
 const MAX_PENDING = 3;
 const DELIVERY_METHODS = ["retiro", "entrega_personal", "envio_nacional"];
@@ -95,6 +96,7 @@ async function createRequest(customerId, body) {
       statusHistory: [{ from: null, to: "nueva", at: new Date(), by: "cliente" }]
     });
     await Customer.updateOne({ _id: customerId }, { $set: { savedCart: [] } });
+    await notifyNewRequest(request);
     return { code: request.code, status: request.status };
   } catch (error) {
     // Si la solicitud no se guardó, el cupo vuelve a quedar disponible.
@@ -118,4 +120,19 @@ async function listMyRequests(customerId) {
   }));
 }
 
-module.exports = { createRequest, listMyRequests, MAX_PENDING };
+// Detalle de una solicitud propia. No incluye notas internas ni quién cambió el estado.
+async function getMyRequest(customerId, code) {
+  const request = await Request.findOne({ code: String(code), customer: customerId });
+  if (request === null) return null;
+  return {
+    code: request.code,
+    status: request.status,
+    createdAt: request.createdAt,
+    deliveryMethod: request.deliveryMethod,
+    comment: request.comment,
+    items: request.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity, price: item.priceSnapshot })),
+    history: request.statusHistory.map((entry) => ({ to: entry.to, at: entry.at }))
+  };
+}
+
+module.exports = { createRequest, listMyRequests, getMyRequest, MAX_PENDING };

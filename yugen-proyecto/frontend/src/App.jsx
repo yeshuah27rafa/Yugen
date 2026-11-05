@@ -15,6 +15,9 @@ const CuentaEntrar = lazy(() => import("./pages/cuenta/CuentaEntrar.jsx"));
 const CuentaVerificar = lazy(() => import("./pages/cuenta/CuentaVerificar.jsx"));
 const CuentaRecuperar = lazy(() => import("./pages/cuenta/CuentaRecuperar.jsx"));
 const CuentaRestablecer = lazy(() => import("./pages/cuenta/CuentaRestablecer.jsx"));
+const CuentaSolicitudes = lazy(() => import("./pages/cuenta/CuentaSolicitudes.jsx"));
+const CuentaSolicitud = lazy(() => import("./pages/cuenta/CuentaSolicitud.jsx"));
+const CuentaConfirmarCorreo = lazy(() => import("./pages/cuenta/CuentaConfirmarCorreo.jsx"));
 const Carrito = lazy(() => import("./pages/tienda/Carrito.jsx"));
 const Solicitud = lazy(() => import("./pages/tienda/Solicitud.jsx"));
 
@@ -40,6 +43,9 @@ export default function App() {
         <Route path="cuenta/verificar" element={lazyPage(<CuentaVerificar />)} />
         <Route path="cuenta/recuperar" element={lazyPage(<CuentaRecuperar />)} />
         <Route path="cuenta/restablecer" element={lazyPage(<CuentaRestablecer />)} />
+        <Route path="cuenta/solicitudes" element={lazyPage(<CuentaSolicitudes />)} />
+        <Route path="cuenta/solicitudes/:code" element={lazyPage(<CuentaSolicitud />)} />
+        <Route path="cuenta/correo/confirmar" element={lazyPage(<CuentaConfirmarCorreo />)} />
         <Route path="admin" element={lazyPage(<Admin />)} />
         <Route path="*" element={<ComingSoon title="Página no encontrada" stage="" />} />
       </Route>

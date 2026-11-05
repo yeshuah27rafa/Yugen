@@ -64,4 +64,31 @@ router.delete("/products/:id", asyncHandler(async (req, res) => {
   return res.json({ ok: true });
 }));
 
+// Operaciones de solicitudes, clientes, mensajes e indicadores.
+const ops = require("../services/adminRequestService");
+
+router.get("/resumen", asyncHandler(async (req, res) => res.json(await ops.dashboard())));
+
+router.get("/solicitudes", asyncHandler(async (req, res) => res.json(await ops.listRequests(req.query))));
+
+router.get("/solicitudes/:id", asyncHandler(async (req, res) => {
+  const detail = await ops.getRequest(req.params.id);
+  if (detail === null) return res.status(404).json({ error: "Solicitud no encontrada." });
+  return res.json(detail);
+}));
+
+router.post("/solicitudes/:id/estado", asyncHandler(async (req, res) => res.json(await ops.transition(req.params.id, req.body.to, req.admin.email))));
+
+router.post("/solicitudes/:id/notas", asyncHandler(async (req, res) => res.status(201).json(await ops.addNote(req.params.id, req.body.text, req.admin.email))));
+
+router.post("/solicitudes/:id/contactado", asyncHandler(async (req, res) => res.json(await ops.markContacted(req.params.id))));
+
+router.post("/conciliar-pendientes", asyncHandler(async (req, res) => res.json(await ops.reconcilePending())));
+
+router.get("/clientes", asyncHandler(async (req, res) => res.json({ items: await ops.listCustomers(req.query) })));
+
+router.get("/mensajes", asyncHandler(async (req, res) => res.json({ items: await ops.listMessages() })));
+
+router.post("/mensajes/:id/revisado", asyncHandler(async (req, res) => res.json(await ops.markMessageReviewed(req.params.id))));
+
 module.exports = router;

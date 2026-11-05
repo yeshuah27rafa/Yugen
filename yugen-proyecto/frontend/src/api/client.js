@@ -67,6 +67,10 @@ export function clienteGet(path) {
   return apiRequest(path, "GET", undefined, customerCsrf);
 }
 
+export function clientePut(path, body) {
+  return apiRequest(path, "PUT", body, customerCsrf);
+}
+
 export function clientePost(path, body) {
   return apiRequest(path, "POST", body, customerCsrf);
 }
