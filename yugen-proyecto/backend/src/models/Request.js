@@ -28,8 +28,10 @@ const requestSchema = new mongoose.Schema({
   contact: {
     name: { type: String, required: true },
     email: { type: String, required: true },
-    whatsapp: { type: String, default: "" }
+    whatsapp: { type: String, default: "" },
+    altEmail: { type: String, default: "" }
   },
+  anonymizedAt: { type: Date, default: null },
   items: { type: [itemSchema], required: true },
   comment: { type: String, default: "", maxlength: 500 },
   deliveryMethod: { type: String, enum: ["retiro", "entrega_personal", "envio_nacional"], required: true },

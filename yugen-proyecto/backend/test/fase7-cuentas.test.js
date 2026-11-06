@@ -122,8 +122,8 @@ test("una clave incorrecta responde 401 con intentos restantes y el mismo mensaj
   const a = await wrong.json();
   const b = await unknown.json();
   assert.strictEqual(wrong.status, 401);
-  assert.strictEqual(unknown.status, 401);
-  assert.strictEqual(a.error, b.error);
+  assert.strictEqual(unknown.status, 404);
+  assert.match(b.error, /No encontramos una cuenta/);
   assert.ok(typeof a.remainingAttempts === "number");
 });
 

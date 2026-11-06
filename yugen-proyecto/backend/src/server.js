@@ -23,6 +23,12 @@ async function start() {
   console.log("Conectado a MongoDB.");
   await seedIfEmpty();
   app.listen(PORT, () => console.log(`API lista en http://localhost:${PORT}/api`));
+
+  // Retención diaria. unref() evita que este temporizador mantenga vivo el proceso.
+  const DAY_MS = 24 * 3600 * 1000;
+  setInterval(() => {
+    require("./services/retentionService").runRetention().catch(() => console.error("La retención diaria falló."));
+  }, DAY_MS).unref();
 }
 
 start().catch((error) => {

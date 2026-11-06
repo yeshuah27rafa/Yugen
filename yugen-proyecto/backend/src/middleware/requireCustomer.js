@@ -13,7 +13,7 @@ module.exports = async function requireCustomer(req, res, next) {
   }
   try {
     const payload = jwt.verify(token, readConfig().customerJwtSecret, { algorithms: ["HS256"], audience: "cliente" });
-    if (isRevoked(payload.jti)) {
+    if (await isRevoked(payload.jti)) {
       return res.status(401).json({ error: "Tu sesión se cerró. Vuelve a iniciar sesión." });
     }
     const customer = await Customer.findById(payload.sub);

@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const Request = require("../models/Request");
 const Customer = require("../models/Customer");
 const Product = require("../models/Product");
+const Work = require("../models/Work");
 const Contact = require("../models/Contact");
 const { canTransition, isPending, STATUSES } = require("../utils/requestStatus");
 const { contactLinks } = require("../utils/whatsappLink");
@@ -181,7 +182,87 @@ async function reconcilePending() {
   return { fixed };
 }
 
+// Anonimiza las solicitudes de un cliente: se conservan productos y fechas, se borran datos personales.
+async function anonymizeCustomerRequests(customerId) {
+  await Request.updateMany(
+    { customer: customerId },
+    { $set: { "contact.name": "Cliente eliminado", "contact.email": "anonimo@eliminado.local", "contact.whatsapp": "", "contact.altEmail": "", anonymizedAt: new Date(), comment: "" } }
+  );
+}
+
+// Borrado total de solicitudes de un cliente (opción del administrador).
+async function deleteCustomerRequests(customerId) {
+  await Request.deleteMany({ customer: customerId });
+}
+
+// Borra una cuenta desde el panel. Por defecto anonimiza sus solicitudes; con deleteRequests las elimina.
+async function deleteCustomer(id, deleteRequests) {
+  requireValidId(id);
+  const customer = await Customer.findById(id);
+  if (customer === null) throw fail(404, "Cliente no encontrado.");
+  if (deleteRequests === true) {
+    await deleteCustomerRequests(id);
+  } else {
+    await anonymizeCustomerRequests(id);
+  }
+  await Customer.deleteOne({ _id: id });
+  return { ok: true };
+}
+
+// Borra una solicitud (opción del administrador). Si estaba pendiente, libera el cupo del cliente.
+async function deleteRequest(id) {
+  requireValidId(id);
+  const request = await Request.findByIdAndDelete(id);
+  if (request === null) throw fail(404, "Solicitud no encontrada.");
+  if (isPending(request.status)) {
+    await Customer.updateOne({ _id: request.customer, pendingRequestCount: { $gt: 0 } }, { $inc: { pendingRequestCount: -1 } });
+  }
+  return { ok: true };
+}
+
+async function deleteMessage(id) {
+  requireValidId(id);
+  const removed = await Contact.findByIdAndDelete(id);
+  if (removed === null) throw fail(404, "Mensaje no encontrado.");
+  return { ok: true };
+}
+
+// Obras: el administrador las crea, edita y borra. Una obra con piezas no se puede borrar.
+async function createWork(data) {
+  const title = String(data.title || "").trim();
+  const slug = String(data.slug || "").trim().toLowerCase();
+  if (title === "" || /^[a-z0-9-]+$/.test(slug) === false) throw fail(400, "La obra necesita título y un enlace (slug) válido.");
+  const year = data.year === "" || data.year === undefined ? undefined : Number(data.year);
+  return Work.create({ title, slug, year, synopsis: String(data.synopsis || ""), cover: String(data.cover || "") });
+}
+
+async function updateWork(id, data) {
+  requireValidId(id);
+  const updated = await Work.findByIdAndUpdate(id, {
+    $set: {
+      title: String(data.title || "").trim(),
+      slug: String(data.slug || "").trim().toLowerCase(),
+      year: data.year === "" || data.year === undefined ? undefined : Number(data.year),
+      synopsis: String(data.synopsis || ""),
+      cover: String(data.cover || "")
+    }
+  }, { new: true, runValidators: true });
+  if (updated === null) throw fail(404, "Obra no encontrada.");
+  return updated;
+}
+
+async function deleteWork(id) {
+  requireValidId(id);
+  const used = await Product.countDocuments({ work: id });
+  if (used > 0) throw fail(409, `No se puede borrar: hay ${used} piezas de esta obra. Muévelas o bórralas primero.`);
+  const removed = await Work.findByIdAndDelete(id);
+  if (removed === null) throw fail(404, "Obra no encontrada.");
+  return { ok: true };
+}
+
 module.exports = {
+  anonymizeCustomerRequests, deleteCustomer, deleteRequest, deleteMessage,
+  createWork, updateWork, deleteWork,
   listRequests, getRequest, transition, addNote, markContacted, dashboard,
   listCustomers, listMessages, markMessageReviewed, reconcilePending
 };

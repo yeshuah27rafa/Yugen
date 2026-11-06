@@ -56,8 +56,8 @@ router.get("/me", requireAdmin, (req, res) => {
   return res.json({ email: req.admin.email, csrfToken: req.admin.csrf });
 });
 
-router.post("/logout", requireAdmin, csrfProtection, (req, res) => {
-  revoke(req.admin.jti, req.admin.exp);
+router.post("/logout", requireAdmin, csrfProtection, async (req, res) => {
+  await revoke(req.admin.jti, req.admin.exp);
   res.clearCookie(SESSION_COOKIE, baseOptions());
   return res.json({ ok: true });
 });

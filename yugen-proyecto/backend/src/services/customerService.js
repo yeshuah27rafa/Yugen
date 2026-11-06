@@ -100,7 +100,9 @@ async function login(email, password) {
   const customer = await Customer.findOne({ email: normalizeEmail(email) });
   const hash = customer === null ? DUMMY_HASH : customer.passwordHash;
   const passwordOk = await bcrypt.compare(String(password || ""), hash);
-  if (customer === null || passwordOk === false) throw fail(401, "Correo o contraseña incorrectos.");
+  // D19: correo no registrado se informa de forma explícita, con salidas claras para el cliente.
+  if (customer === null) throw fail(404, "No encontramos una cuenta con este correo. Puedes crear una cuenta o revisar que lo escribiste bien.");
+  if (passwordOk === false) throw fail(401, "Correo o contraseña incorrectos.");
   if (customer.emailVerifiedAt === null) {
     throw fail(403, "Confirma tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.");
   }

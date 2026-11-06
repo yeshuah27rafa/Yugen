@@ -6,6 +6,9 @@ const Customer = require("../models/Customer");
 const { generateToken, hashToken, isWellFormedToken } = require("../services/tokenService");
 const { getMailer } = require("../mail");
 const requestService = require("../services/requestService");
+const adminRequestService = require("../services/adminRequestService");
+const Request = require("../models/Request");
+const honeypot = require("../middleware/honeypot");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
@@ -68,7 +71,7 @@ function issueCustomerSession(res, customer) {
 }
 
 // Respuesta de registro idéntica exista o no el correo.
-router.post("/registro", sensitiveLimiter, asyncHandler(async (req, res) => {
+router.post("/registro", sensitiveLimiter, honeypot, asyncHandler(async (req, res) => {
   await customerService.register({
     name: req.body.name,
     email: req.body.email,
@@ -101,8 +104,8 @@ router.get("/me", requireCustomer, (req, res) => {
   return res.json({ name: req.customer.name, email: req.customer.email, csrfToken: req.customer.csrf });
 });
 
-router.post("/salir", requireCustomer, customerCsrf, (req, res) => {
-  revoke(req.customer.jti, req.customer.exp);
+router.post("/salir", requireCustomer, customerCsrf, async (req, res) => {
+  await revoke(req.customer.jti, req.customer.exp);
   res.clearCookie(CUSTOMER_COOKIE, baseOptions());
   return res.json({ ok: true });
 });
@@ -120,7 +123,7 @@ router.post("/restablecer", asyncHandler(async (req, res) => {
 router.post("/clave", requireCustomer, customerCsrf, asyncHandler(async (req, res) => {
   const customer = await customerService.changePassword(req.customer.id, req.body.currentPassword, req.body.newPassword);
   // Las sesiones anteriores quedan inválidas por tokenVersion; esta sesión se reemite.
-  revoke(req.customer.jti, req.customer.exp);
+  await revoke(req.customer.jti, req.customer.exp);
   const csrfToken = issueCustomerSession(res, customer);
   return res.json({ ok: true, csrfToken });
 }));
@@ -202,6 +205,29 @@ router.get("/datos", requireCustomer, asyncHandler(async (req, res) => {
     profile: { name: customer.name, email: customer.email, createdAt: customer.createdAt, emailVerifiedAt: customer.emailVerifiedAt },
     requests
   });
+}));
+
+// D8: el cliente cancela su solicitud solo mientras esté en "nueva".
+router.post("/solicitudes/:code/cancelar", requireCustomer, customerCsrf, asyncHandler(async (req, res) => {
+  const request = await Request.findOne({ code: String(req.params.code), customer: req.customer.id });
+  if (request === null) return res.status(404).json({ error: "Solicitud no encontrada." });
+  if (request.status !== "nueva") {
+    return res.status(409).json({ error: "Solo puedes cancelar mientras la solicitud está en Nueva. Escríbenos para revisar tu caso." });
+  }
+  await adminRequestService.transition(request._id, "cancelada", "cliente");
+  return res.json({ status: "cancelada" });
+}));
+
+// D20: eliminar la cuenta. Sus solicitudes se anonimizan (se conservan sin datos personales).
+router.delete("/eliminar", requireCustomer, customerCsrf, asyncHandler(async (req, res) => {
+  const customer = await Customer.findById(req.customer.id);
+  const passwordOk = await bcrypt.compare(String(req.body.password || ""), customer.passwordHash);
+  if (passwordOk === false) throw httpError(400, "La contraseña no es correcta.");
+  await adminRequestService.anonymizeCustomerRequests(req.customer.id);
+  await Customer.deleteOne({ _id: req.customer.id });
+  await revoke(req.customer.jti, req.customer.exp);
+  res.clearCookie(CUSTOMER_COOKIE, baseOptions());
+  return res.json({ ok: true, message: "Tu cuenta fue eliminada. Tus solicitudes quedaron anonimizadas." });
 }));
 
 module.exports = router;

@@ -1,7 +1,7 @@
 // components/admin/AdminMessages.jsx
 // Mensajes del formulario de contacto, con marca de revisado.
 import { useState } from "react";
-import { apiPost } from "../../api/client.js";
+import { apiDelete, apiPost } from "../../api/client.js";
 import { useApi } from "../../hooks/useApi.js";
 import DataState from "../DataState.jsx";
 
@@ -12,6 +12,17 @@ export default function AdminMessages() {
   async function markReviewed(id) {
     try {
       await apiPost(`/admin/mensajes/${id}/revisado`, {});
+      messages.reload();
+    } catch (failure) {
+      setError(failure.message);
+    }
+  }
+
+  async function deleteMessage(id) {
+    const confirmed = window.confirm("¿Borrar este mensaje? No se puede deshacer.");
+    if (confirmed === false) return;
+    try {
+      await apiDelete(`/admin/mensajes/${id}`);
       messages.reload();
     } catch (failure) {
       setError(failure.message);
@@ -34,6 +45,7 @@ export default function AdminMessages() {
                 {item.status === "revisado" ? null : (
                   <button className="btn-ghost" type="button" onClick={() => markReviewed(item._id)}>Marcar revisado</button>
                 )}
+                <button className="btn-ghost link-button--danger" type="button" onClick={() => deleteMessage(item._id)}>Borrar</button>
               </li>
             ))}
           </ul>

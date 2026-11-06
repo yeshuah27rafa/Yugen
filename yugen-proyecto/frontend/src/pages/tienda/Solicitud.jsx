@@ -32,6 +32,7 @@ export default function Solicitud() {
         deliveryMethod: data.get("deliveryMethod"),
         whatsapp: String(data.get("whatsapp") || ""),
         useEmailOnly: useEmail,
+        contactEmail: String(data.get("contactEmail") || ""),
         comment: String(data.get("comment") || "")
       });
       writeCart([]);
@@ -75,8 +76,14 @@ export default function Solicitud() {
         </label>
         <label className="field field--check">
           <input type="checkbox" checked={useEmail} onChange={(event) => setUseEmail(event.target.checked)} />
-          No tengo WhatsApp: usaré mi correo para coordinar.
+          No tengo WhatsApp: usaré otro correo para coordinar.
         </label>
+        {useEmail ? (
+          <label className="field">
+            Correo de contacto
+            <input name="contactEmail" type="email" required autoComplete="email" maxLength="254" />
+          </label>
+        ) : null}
         <label className="field">
           Forma de entrega
           <select name="deliveryMethod" required defaultValue="retiro">

@@ -5,6 +5,7 @@ const rateLimit = require("express-rate-limit");
 const Contact = require("../models/Contact");
 const Product = require("../models/Product");
 const asyncHandler = require("../utils/asyncHandler");
+const honeypot = require("../middleware/honeypot");
 const { readConfig } = require("../config/env");
 
 const router = express.Router();
@@ -24,7 +25,7 @@ router.get("/tienda", (req, res) => {
   return res.json({ email: config.contactEmail, whatsapp: config.contactWhatsapp });
 });
 
-router.post("/", contactLimiter, asyncHandler(async (req, res) => {
+router.post("/", contactLimiter, honeypot, asyncHandler(async (req, res) => {
   const name = String(req.body.name || "").trim();
   const email = String(req.body.email || "").trim();
   const message = String(req.body.message || "").trim();

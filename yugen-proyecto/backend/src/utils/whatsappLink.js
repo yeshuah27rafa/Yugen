@@ -23,7 +23,7 @@ function contactLinks(request, templateKey) {
   const text = TEMPLATES[key](data);
   return {
     whatsapp: request.contact.whatsapp ? whatsappUrl(request.contact.whatsapp, text) : null,
-    email: mailtoUrl(request.contact.email, `Tu solicitud ${request.code}`, text),
+    email: mailtoUrl(request.contact.altEmail || request.contact.email, `Tu solicitud ${request.code}`, text),
     text
   };
 }

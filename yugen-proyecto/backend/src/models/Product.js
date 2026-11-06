@@ -33,10 +33,18 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Imagen principal calculada: la marcada como principal o, si no hay ninguna, la primera.
+// Se protege porque el producto puede llegar parcial (por ejemplo, con populate("product", "name slug")
+// no trae "images"). Sin esta protección, convertir el documento a JSON falla con error 500.
 productSchema.virtual("mainImage").get(function getMainImage() {
-  const marked = this.images.find((image) => image.isMain === true);
+  // Si "images" no viene en el documento, se trata como lista vacía.
+  const images = Array.isArray(this.images) ? this.images : [];
+
+  // Prioridad: la imagen marcada como principal.
+  const marked = images.find((image) => image.isMain === true);
   if (marked !== undefined) return marked;
-  return this.images.length > 0 ? this.images[0] : null;
+
+  // Si ninguna está marcada, se usa la primera; si no hay imágenes, null.
+  return images.length > 0 ? images[0] : null;
 });
 
 // Incluye los virtuales al convertir a JSON para que la API entregue mainImage.

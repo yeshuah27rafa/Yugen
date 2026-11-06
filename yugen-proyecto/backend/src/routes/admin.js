@@ -91,4 +91,24 @@ router.get("/mensajes", asyncHandler(async (req, res) => res.json({ items: await
 
 router.post("/mensajes/:id/revisado", asyncHandler(async (req, res) => res.json(await ops.markMessageReviewed(req.params.id))));
 
+// Fase 11: borrado, obras y retención (todas detrás de sesión y CSRF por el router).
+const retention = require("../services/retentionService");
+
+router.delete("/clientes/:id", asyncHandler(async (req, res) => {
+  // deleteRequests=true borra también sus solicitudes; por defecto solo se anonimizan.
+  return res.json(await ops.deleteCustomer(req.params.id, req.query.deleteRequests === "true"));
+}));
+
+router.delete("/solicitudes/:id", asyncHandler(async (req, res) => res.json(await ops.deleteRequest(req.params.id))));
+
+router.delete("/mensajes/:id", asyncHandler(async (req, res) => res.json(await ops.deleteMessage(req.params.id))));
+
+router.post("/obras", asyncHandler(async (req, res) => res.status(201).json(await ops.createWork(req.body))));
+
+router.put("/obras/:id", asyncHandler(async (req, res) => res.json(await ops.updateWork(req.params.id, req.body))));
+
+router.delete("/obras/:id", asyncHandler(async (req, res) => res.json(await ops.deleteWork(req.params.id))));
+
+router.post("/retencion/ejecutar", asyncHandler(async (req, res) => res.json(await retention.runRetention())));
+
 module.exports = router;

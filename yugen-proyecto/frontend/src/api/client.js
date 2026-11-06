@@ -71,6 +71,10 @@ export function clientePut(path, body) {
   return apiRequest(path, "PUT", body, customerCsrf);
 }
 
+export function clienteDelete(path, body) {
+  return apiRequest(path, "DELETE", body, customerCsrf);
+}
+
 export function clientePost(path, body) {
   return apiRequest(path, "POST", body, customerCsrf);
 }

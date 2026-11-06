@@ -1,7 +1,7 @@
 // components/admin/AdminRequests.jsx
 // Bandeja de solicitudes con filtros, detalle, cambios de estado, notas internas y enlaces de contacto.
 import { useEffect, useState } from "react";
-import { apiGet, apiPost } from "../../api/client.js";
+import { apiDelete, apiGet, apiPost } from "../../api/client.js";
 import { useApi } from "../../hooks/useApi.js";
 import { formatPrice } from "../../utils/format.js";
 import DataState from "../DataState.jsx";
@@ -45,7 +45,7 @@ export default function AdminRequests() {
       <div className="admin-split">
         <div>
           <DataState
-            state={list}
+            state={list.status === "ready" ? { status: "ready", data: list.data.items } : list}
             emptyText="No hay solicitudes con esos filtros."
             render={(items) => (
               <ul className="admin-list">
@@ -108,6 +108,18 @@ function RequestDetail({ id, onChanged }) {
     }
   }
 
+  async function deleteRequest() {
+    const confirmed = window.confirm(`¿Borrar la solicitud ${request.code}? Esta acción no se puede deshacer.`);
+    if (confirmed === false) return;
+    try {
+      await apiDelete(`/admin/solicitudes/${id}`);
+      onChanged();
+      setDetail(null);
+    } catch (failure) {
+      setError(failure.message);
+    }
+  }
+
   async function markContacted() {
     try {
       await apiPost(`/admin/solicitudes/${id}/contactado`, {});
@@ -141,6 +153,7 @@ function RequestDetail({ id, onChanged }) {
         {detail.links.whatsapp ? <a className="button" href={detail.links.whatsapp} target="_blank" rel="noreferrer">Abrir WhatsApp</a> : null}
         <a className="btn-ghost" href={detail.links.email}>Escribir por correo</a>
         <button className="btn-ghost" type="button" onClick={markContacted}>Marcar contactado</button>
+        <button className="btn-ghost link-button--danger" type="button" onClick={deleteRequest}>Borrar solicitud</button>
       </div>
       <p className="status">Plantilla sugerida: {detail.links.text}</p>
 

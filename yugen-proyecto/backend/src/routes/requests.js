@@ -5,10 +5,11 @@ const asyncHandler = require("../utils/asyncHandler");
 const requireCustomer = require("../middleware/requireCustomer");
 const customerCsrf = require("../middleware/customerCsrf");
 const { createRequest, listMyRequests } = require("../services/requestService");
+const honeypot = require("../middleware/honeypot");
 
 const router = express.Router();
 
-router.post("/", requireCustomer, customerCsrf, asyncHandler(async (req, res) => {
+router.post("/", requireCustomer, customerCsrf, honeypot, asyncHandler(async (req, res) => {
   const result = await createRequest(req.customer.id, req.body);
   return res.status(201).json(result);
 }));

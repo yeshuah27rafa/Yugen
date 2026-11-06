@@ -2,7 +2,8 @@
 // Panel del cliente: datos, correo (con confirmación), contraseña, exportación de datos y acceso a solicitudes.
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { clienteGet, clientePost, clientePut, setCustomerCsrfToken } from "../../api/client.js";
+import { clienteDelete, clienteGet, clientePost, clientePut, setCustomerCsrfToken } from "../../api/client.js";
+import { writeCart } from "../../utils/cartStorage.js";
 
 export default function Cuenta() {
   const navigate = useNavigate();
@@ -58,6 +59,20 @@ export default function Cuenta() {
     }
   }
 
+  async function handleDeleteAccount(event) {
+    event.preventDefault();
+    if (window.confirm("¿Seguro que quieres eliminar tu cuenta?") === false) return;
+    const data = new FormData(event.currentTarget);
+    try {
+      await clienteDelete("/cuenta/eliminar", { password: data.get("password") });
+      writeCart([]);
+      setCustomerCsrfToken("");
+      navigate("/");
+    } catch (failure) {
+      show("error", failure.message);
+    }
+  }
+
   async function handleExport() {
     try {
       const response = await clienteGet("/cuenta/datos");
@@ -79,6 +94,8 @@ export default function Cuenta() {
     } catch (failure) {
       // Si la sesión ya no es válida en el servidor, se cierra igualmente en la interfaz.
     }
+    // El carrito es del navegador: al cerrar sesión se vacía para no mostrarlo a la siguiente cuenta.
+    writeCart([]);
     setCustomerCsrfToken("");
     navigate("/cuenta/entrar");
   }
@@ -127,6 +144,13 @@ export default function Cuenta() {
         <p className="status">Descarga una copia de tus datos y de tus solicitudes.</p>
         <div className="form-foot"><button className="btn-ghost" type="button" onClick={handleExport}>Descargar mis datos</button></div>
       </div>
+
+      <form className="cuenta-form" onSubmit={handleDeleteAccount}>
+        <h2>Eliminar mi cuenta</h2>
+        <p className="status">Tu cuenta se borra y tus solicitudes quedan anonimizadas. Esta acción no se puede deshacer.</p>
+        <label className="field">Contraseña actual<input name="password" type="password" required autoComplete="current-password" /></label>
+        <div className="form-foot"><button className="btn-ghost link-button--danger" type="submit">Eliminar cuenta</button></div>
+      </form>
 
       <div className="form-foot">
         <button className="btn-ghost" type="button" onClick={handleLogout}>Cerrar sesión</button>

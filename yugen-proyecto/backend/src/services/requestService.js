@@ -28,6 +28,16 @@ function resolveWhatsapp(body) {
   return local;
 }
 
+// Sin WhatsApp, el cliente debe dejar un correo de contacto válido (campo nuevo, separado del de la cuenta).
+function resolveAltEmail(body, whatsapp) {
+  if (whatsapp !== "") return "";
+  const value = String(body.contactEmail || "").trim().toLowerCase();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) === false || value.length > 254) {
+    throw fail(400, "Escribe un correo de contacto válido para coordinar la solicitud.");
+  }
+  return value;
+}
+
 // Código legible YG-000001. Reintenta una vez si dos primeras solicitudes crean el contador a la vez.
 async function nextCode() {
   let counter = null;
@@ -54,6 +64,7 @@ async function createRequest(customerId, body) {
   if (comment.length > MAX_COMMENT) throw fail(400, `El comentario no puede superar ${MAX_COMMENT} caracteres.`);
 
   const whatsapp = resolveWhatsapp(body);
+  const altEmail = resolveAltEmail(body, whatsapp);
 
   // Las piezas se leen del servidor: nunca se usan precios ni nombres enviados por el cliente.
   const ids = checked.lines.map((line) => line.productId);
@@ -63,6 +74,10 @@ async function createRequest(customerId, body) {
   }
   const productById = {};
   products.forEach((product) => { productById[String(product._id)] = product; });
+
+  // Corrección de contadores: el número real son las solicitudes "nueva", no el contador guardado.
+  const realPending = await Request.countDocuments({ customer: customerId, status: "nueva" });
+  await Customer.updateOne({ _id: customerId }, { $set: { pendingRequestCount: realPending } });
 
   // Límite atómico: solo incrementa si el cliente tiene menos de tres pendientes.
   const customer = await Customer.findOneAndUpdate(
@@ -88,7 +103,7 @@ async function createRequest(customerId, body) {
     const request = await Request.create({
       code,
       customer: customer._id,
-      contact: { name: customer.name, email: customer.email, whatsapp },
+      contact: { name: customer.name, email: customer.email, whatsapp, altEmail },
       items,
       comment,
       deliveryMethod,

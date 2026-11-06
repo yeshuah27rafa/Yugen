@@ -1,24 +1,31 @@
 // utils/revokedSessions.js
-// Lista de sesiones cerradas (identificador jti) hasta su fecha de caducidad.
-// Limitación: vive en memoria; se vacía al reiniciar el servidor y no se comparte entre varias instancias.
-const revoked = new Map();
+// Revocación de sesiones. Persistente en MongoDB: sobrevive a reinicios y funciona con varias instancias.
+// Sin conexión a la base (solo en pruebas sin base de datos) usa una lista en memoria.
+const mongoose = require("mongoose");
+const RevokedSession = require("../models/RevokedSession");
 
-function purgeExpired() {
-  const now = Date.now();
-  revoked.forEach((expiresAtSeconds, jti) => {
-    if (expiresAtSeconds * 1000 < now) revoked.delete(jti);
-  });
+const memory = new Map();
+
+function databaseReady() {
+  return mongoose.connection.readyState === 1;
 }
 
-function revoke(jti, expiresAtSeconds) {
+async function revoke(jti, expiresAtSeconds) {
   if (jti === undefined || expiresAtSeconds === undefined) return;
-  revoked.set(jti, expiresAtSeconds);
-  purgeExpired();
+  const expiresAt = new Date(expiresAtSeconds * 1000);
+  if (databaseReady()) {
+    await RevokedSession.updateOne({ jti }, { $set: { jti, expiresAt } }, { upsert: true });
+    return;
+  }
+  memory.set(jti, expiresAtSeconds);
 }
 
-function isRevoked(jti) {
+async function isRevoked(jti) {
   if (jti === undefined) return true;
-  return revoked.has(jti);
+  if (databaseReady()) {
+    return (await RevokedSession.exists({ jti })) !== null;
+  }
+  return memory.has(jti);
 }
 
 module.exports = { revoke, isRevoked };

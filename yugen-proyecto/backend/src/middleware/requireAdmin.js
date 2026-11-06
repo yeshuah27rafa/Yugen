@@ -5,14 +5,14 @@ const { SESSION_COOKIE } = require("../utils/cookies");
 const { isRevoked } = require("../utils/revokedSessions");
 const { readConfig } = require("../config/env");
 
-module.exports = function requireAdmin(req, res, next) {
+module.exports = async function requireAdmin(req, res, next) {
   const token = req.cookies ? req.cookies[SESSION_COOKIE] : undefined;
   if (token === undefined || token === "") {
     return res.status(401).json({ error: "Inicia sesión como administrador." });
   }
   try {
     const payload = jwt.verify(token, readConfig().jwtSecret, { algorithms: ["HS256"], audience: "admin" });
-    if (isRevoked(payload.jti)) {
+    if (await isRevoked(payload.jti)) {
       return res.status(401).json({ error: "Tu sesión se cerró. Vuelve a iniciar sesión." });
     }
     req.admin = payload;
