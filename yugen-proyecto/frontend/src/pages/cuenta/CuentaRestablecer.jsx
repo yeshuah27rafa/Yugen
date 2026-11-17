@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiPost } from "../../api/client.js";
+import PasswordField from "../../components/cuenta/PasswordField.jsx";
 
 export default function CuentaRestablecer() {
   const [searchParams] = useSearchParams();
@@ -31,7 +32,7 @@ export default function CuentaRestablecer() {
       <form className="cuenta-form" onSubmit={handleSubmit}>
         <label className="field">
           Contraseña nueva (mínimo 10 caracteres)
-          <input name="password" type="password" required minLength="10" maxLength="128" autoComplete="new-password" />
+          <PasswordField name="password" required minLength="10" maxLength="128" autoComplete="new-password" />
         </label>
         <div className="form-foot">
           <button className="button" type="submit" disabled={sending || token === ""}>{sending ? "Guardando…" : "Guardar"}</button>

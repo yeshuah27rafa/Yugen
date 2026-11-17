@@ -49,7 +49,7 @@ export default function Hero({ products }) {
   }, []);
 
   return (
-    <section className="hero" ref={ref} aria-labelledby="hero-title">
+    <section id="hero" className="hero" ref={ref} aria-labelledby="hero-title">
       <div className="hero__bg" aria-hidden="true">
         <span className="hero__kanji" lang="ja">幽玄</span>
         <span className="hero__dots" />

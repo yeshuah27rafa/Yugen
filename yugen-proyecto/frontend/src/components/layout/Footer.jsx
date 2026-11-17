@@ -6,6 +6,7 @@ import { useApi } from "../../hooks/useApi.js";
 export default function Footer({ categories }) {
   const contact = useApi("/contacto/tienda");
   const info = contact.status === "ready" ? contact.data : { email: "", whatsapp: "" };
+  const whatsappDigits = String(info.whatsapp || "").replace(/\D/g, "").replace(/^507/, "");
   return (
     <footer className="site-footer">
       <p className="site-footer__mark" aria-hidden="true">YUGEN<span lang="ja">幽玄</span></p>
@@ -25,7 +26,7 @@ export default function Footer({ categories }) {
         <div>
           <h2>Contacto</h2>
           {info.email !== "" ? <a href={`mailto:${info.email}`}>{info.email}</a> : null}
-          {info.whatsapp !== "" ? <a href={`https://wa.me/507${String(info.whatsapp).replace(/\D/g, "").replace(/^507/, "")}`} rel="noopener">WhatsApp</a> : null}
+          {whatsappDigits !== "" ? <a className="button button--whatsapp site-footer__whatsapp" href={`https://wa.me/507${whatsappDigits}?text=${encodeURIComponent("Hola, Yugen. Quisiera realizar una consulta general.")}`} target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a> : null}
           <Link to="/#contacto">Escríbenos</Link>
         </div>
       </div>

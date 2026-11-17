@@ -208,6 +208,52 @@ test("actualiza precio a consultar y marca como destacada", async () => {
   assert.strictEqual(data.contexto, "Ficha de prueba.");
 });
 
+test("el registro administrativo identifica solo los campos que realmente cambiaron", async () => {
+  const list = await (await adminFetch("/admin/products")).json();
+  const target = list.find((item) => item.slug === "pieza-nueva-de-prueba");
+  assert.ok(target, "la pieza de prueba debe existir antes de verificar su auditoría");
+  const payload = {
+    name: "Pieza Nueva de Prueba · Editada",
+    slug: target.slug,
+    category: target.category,
+    work: target.work._id,
+    price: target.price == null ? "" : target.price,
+    stock: target.stock,
+    availability: target.availability,
+    description: target.description,
+    contexto: target.contexto,
+    featured: target.featured,
+    recommended: target.recommended,
+    featuredOrder: target.featuredOrder || 0,
+    recommendedOrder: target.recommendedOrder || 0,
+    images: target.images.map(({ url, alt, isMain }) => ({ url, alt, isMain })),
+    specs: target.specs.map(({ label, value }) => ({ label, value }))
+  };
+  const initialLog = await (await adminFetch("/admin/registro-ediciones?limit=200")).json();
+  const initialCount = initialLog.items.filter((item) => String(item.entityId) === String(target._id) && item.action === "actualizado").length;
+  const response = await adminFetch(`/admin/products/${target._id}`, {
+    method: "PUT",
+    headers: { "X-CSRF-Token": csrfToken },
+    body: JSON.stringify(payload)
+  });
+  assert.strictEqual(response.status, 200);
+
+  const log = await (await adminFetch("/admin/registro-ediciones?limit=200")).json();
+  const entry = log.items.find((item) => String(item.entityId) === String(target._id) && item.action === "actualizado");
+  assert.ok(entry, "la edición real debe quedar registrada");
+  assert.deepStrictEqual(entry.details.fields, ["name"]);
+  assert.deepStrictEqual(entry.details.changes, [{ field: "name", before: "Pieza Nueva de Prueba", after: "Pieza Nueva de Prueba · Editada" }]);
+  const repeated = await adminFetch(`/admin/products/${target._id}`, {
+    method: "PUT",
+    headers: { "X-CSRF-Token": csrfToken },
+    body: JSON.stringify(payload)
+  });
+  assert.strictEqual(repeated.status, 200);
+  const unchangedLog = await (await adminFetch("/admin/registro-ediciones?limit=200")).json();
+  const finalCount = unchangedLog.items.filter((item) => String(item.entityId) === String(target._id) && item.action === "actualizado").length;
+  assert.strictEqual(finalCount, initialCount + 1, "guardar el mismo contenido no debe generar un movimiento de edición adicional");
+});
+
 test("elimina una pieza y deja de estar disponible en la API pública", async () => {
   const list = await (await adminFetch("/admin/products")).json();
   const target = list.find((item) => item.slug === "pieza-nueva-de-prueba");

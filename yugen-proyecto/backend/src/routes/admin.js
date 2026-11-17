@@ -13,6 +13,7 @@ const requireAdmin = require("../middleware/requireAdmin");
 const csrfProtection = require("../middleware/csrfProtection");
 const asyncHandler = require("../utils/asyncHandler");
 const validateProduct = require("../utils/validateProduct");
+const { createAuditChanges } = require("../utils/auditChanges");
 
 const router = express.Router();
 const WORK_FIELDS = "title slug";
@@ -47,7 +48,7 @@ router.put("/products/:id", asyncHandler(async (req, res) => {
   if (mongoose.isValidObjectId(req.params.id) === false) {
     return res.status(404).json({ error: "Pieza no encontrada." });
   }
-  const currentProduct = await Product.findById(req.params.id).select("category name slug");
+  const currentProduct = await Product.findById(req.params.id).populate("work", WORK_FIELDS);
   if (currentProduct === null) return res.status(404).json({ error: "Pieza no encontrada." });
   const result = validateProduct(req.body);
   const categoryExists = result.data.category
@@ -69,8 +70,16 @@ router.put("/products/:id", asyncHandler(async (req, res) => {
   if (updated === null) {
     return res.status(404).json({ error: "Pieza no encontrada." });
   }
-  const changedFields = Object.keys(result.data);
-  await recordAdminChange(req.admin, { entityType: "pieza", entityId: updated._id, entityLabel: updated.name, action: "actualizado", summary: "Se actualizaron los datos de la pieza.", details: { fields: changedFields } });
+  const productFields = ["name", "slug", "category", "work", "price", "stock", "availability", "description", "contexto", "featured", "recommended", "featuredOrder", "recommendedOrder", "images", "specs"];
+  const changes = createAuditChanges(currentProduct, updated, productFields);
+  if (changes.length > 0) {
+    const fields = changes.map((change) => change.field);
+    await recordAdminChange(req.admin, {
+      entityType: "pieza", entityId: updated._id, entityLabel: updated.name, action: "actualizado",
+      summary: `Se modificaron ${changes.length} ${changes.length === 1 ? "campo" : "campos"} de la pieza.`,
+      details: { fields, changes }
+    });
+  }
   return res.json(updated);
 }));
 
@@ -181,7 +190,16 @@ router.put("/catalog/categories/:id", asyncHandler(async (req, res) => {
     if (used > 0) return res.status(409).json({ error: "No puedes cambiar el identificador mientras haya piezas usando esta categoría." });
   }
   const updated = await CatalogCategory.findByIdAndUpdate(req.params.id, { $set: result.data }, { new: true, runValidators: true });
-  await recordAdminChange(req.admin, { entityType: "categoria", entityId: updated._id, entityLabel: updated.name, action: "actualizado", summary: "Se actualizaron los datos, visibilidad u orden de la categoría.", details: { fields: Object.keys(result.data) } });
+  const categoryFields = ["slug", "name", "description", "kanji", "seed", "imageUrl", "sortOrder", "active", "showOnHome"];
+  const changes = createAuditChanges(current, updated, categoryFields);
+  if (changes.length > 0) {
+    const fields = changes.map((change) => change.field);
+    await recordAdminChange(req.admin, {
+      entityType: "categoria", entityId: updated._id, entityLabel: updated.name, action: "actualizado",
+      summary: `Se modificaron ${changes.length} ${changes.length === 1 ? "campo" : "campos"} de la categoría.`,
+      details: { fields, changes }
+    });
+  }
   return res.json(updated);
 }));
 
@@ -232,8 +250,19 @@ router.post("/obras", asyncHandler(async (req, res) => {
 }));
 
 router.put("/obras/:id", asyncHandler(async (req, res) => {
+  const current = mongoose.isValidObjectId(req.params.id) ? await Work.findById(req.params.id) : null;
+  if (current === null) return res.status(404).json({ error: "Obra no encontrada." });
   const updated = await ops.updateWork(req.params.id, req.body);
-  await recordAdminChange(req.admin, { entityType: "obra", entityId: updated._id, entityLabel: updated.title, action: "actualizado", summary: "Se actualizaron la presentación, sinopsis, portada u orden de la obra.", details: { fields: ["title", "slug", "year", "synopsis", "cover", "sortOrder", "showOnHome"].filter((field) => Object.prototype.hasOwnProperty.call(req.body || {}, field)) } });
+  const workFields = ["title", "slug", "year", "synopsis", "cover", "sortOrder", "showOnHome"];
+  const changes = createAuditChanges(current, updated, workFields);
+  if (changes.length > 0) {
+    const fields = changes.map((change) => change.field);
+    await recordAdminChange(req.admin, {
+      entityType: "obra", entityId: updated._id, entityLabel: updated.title, action: "actualizado",
+      summary: `Se modificaron ${changes.length} ${changes.length === 1 ? "campo" : "campos"} de la obra.`,
+      details: { fields, changes }
+    });
+  }
   return res.json(updated);
 }));
 

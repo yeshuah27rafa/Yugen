@@ -7,11 +7,14 @@ import { writeCart } from "../../utils/cartStorage.js";
 import BackLink from "../../components/layout/BackLink.jsx";
 import { useWishlist } from "../../components/WishlistContext.jsx";
 import ProductImage from "../../components/art/ProductImage.jsx";
+import PasswordField from "../../components/cuenta/PasswordField.jsx";
+import RequestPreviewDrawer from "../../components/cuenta/RequestPreviewDrawer.jsx";
 
 export default function Cuenta() {
   const navigate = useNavigate();
   const wishlist = useWishlist();
   const [requests, setRequests] = useState([]);
+  const [previewRequest, setPreviewRequest] = useState(null);
   const [requestsLoading, setRequestsLoading] = useState(true);
   const [session, setSession] = useState({ status: "loading", name: "", email: "" });
   const [notice, setNotice] = useState({ kind: "", text: "" });
@@ -167,14 +170,18 @@ export default function Cuenta() {
       <section className="account-recent" aria-labelledby="account-recent-title">
         <div className="account-recent__head"><div><p className="micro">Actividad reciente</p><h2 id="account-recent-title">Tus últimas solicitudes.</h2></div><Link className="text-link" to="/cuenta/solicitudes">Ver historial ↗</Link></div>
         {requestsLoading ? <p className="status status--loading">Cargando tu actividad…</p> : requests.length === 0 ? <div className="account-recent__empty"><span aria-hidden="true">✳</span><div><strong>Aquí comenzará tu historial.</strong><p>Cuando envíes una solicitud, podrás consultar su evolución desde este espacio.</p></div><Link className="link-button" to="/catalogo">Explorar catálogo ↗</Link></div> : (
-          <div className="account-recent__list">{requests.slice(0, 3).map((request) => { const first = request.items?.[0]; return <Link className="account-recent__item" key={request.code} to={`/cuenta/solicitudes/${request.code}`}>
-            <div className="account-recent__image">{first?.image?.url ? <ProductImage image={first.image} product={{ name: first.name }} /> : <span aria-hidden="true">幽玄</span>}</div>
-            <div className="account-recent__copy"><small>{request.code} · {new Date(request.createdAt).toLocaleDateString()}</small><strong>{first?.name || "Solicitud"}{request.items?.length > 1 ? ` y ${request.items.length - 1} más` : ""}</strong><span>{request.items?.reduce((sum, item) => sum + item.quantity, 0) || 0} piezas</span></div>
-            <span className={`request-status request-status--${request.status === "nueva" ? "process" : ["rechazada", "cancelada"].includes(request.status) ? "danger" : "success"}`}>{request.status === "nueva" ? "En proceso" : ["rechazada", "cancelada"].includes(request.status) ? "Cancelada" : "Aprobada"}</span>
-            <span className="account-recent__arrow" aria-hidden="true">↗</span>
-          </Link>; })}</div>
+          <div className="account-recent__list">{requests.slice(0, 3).map((request) => { const first = request.items?.[0]; return <article className="account-recent__item" key={request.code}>
+            <Link className="account-recent__item-main" to={`/cuenta/solicitudes/${encodeURIComponent(request.code)}`} aria-label={`Abrir seguimiento de la solicitud ${request.code}`}>
+              <div className="account-recent__image">{first?.image?.url ? <ProductImage image={first.image} product={{ name: first.name }} /> : <span aria-hidden="true">幽玄</span>}</div>
+              <div className="account-recent__copy"><small>{request.code} · {new Date(request.createdAt).toLocaleDateString("es-PA")}</small><strong>{first?.name || "Solicitud"}{request.items?.length > 1 ? ` y ${request.items.length - 1} más` : ""}</strong><span>{request.items?.reduce((sum, item) => sum + Number(item.quantity || 1), 0) || 0} piezas</span></div>
+              <span className={`request-status request-status--${request.status === "nueva" ? "process" : ["rechazada", "cancelada"].includes(request.status) ? "danger" : "success"}`}>{request.status === "nueva" ? "En proceso" : ["rechazada", "cancelada"].includes(request.status) ? "Cancelada" : "Aprobada"}</span>
+              <span className="account-recent__arrow" aria-hidden="true">↗</span>
+            </Link>
+            <button className="btn-ghost account-recent__preview" type="button" onClick={() => setPreviewRequest(request)} aria-label={`Previsualizar solicitud ${request.code}`}>Vista previa</button>
+          </article>; })}</div>
         )}
       </section>
+      {previewRequest ? <RequestPreviewDrawer request={previewRequest} onClose={() => setPreviewRequest(null)} returnLabel="Volver a Cuenta" /> : null}
 
       <div className="account-dashboard__section-title" id="datos-cuenta"><p className="micro">Tu información</p><h2>Datos y preferencias.</h2><p>Administra lo necesario desde un mismo lugar.</p></div>
       <div className="account-dashboard__grid">
@@ -187,28 +194,28 @@ export default function Cuenta() {
           </form>
         </section>
 
-        <section className="account-card">
+        <section className="account-card account-card--email">
           <p className="micro">Correo</p>
           <h2>Cambiar correo</h2>
           <p className="status">Te enviaremos un enlace al correo nuevo. El cambio se aplica al confirmarlo.</p>
           <form className="cuenta-form" onSubmit={handleEmail}>
-            <label className="field">Contraseña actual<input name="password" type="password" required autoComplete="current-password" /></label>
+            <label className="field">Contraseña actual<PasswordField name="password" required autoComplete="current-password" /></label>
             <label className="field">Correo nuevo<input name="newEmail" type="email" required autoComplete="email" /></label>
             <div className="form-foot"><button className="button" type="submit">Enviar enlace</button></div>
           </form>
         </section>
 
-        <section className="account-card">
+        <section className="account-card account-card--security">
           <p className="micro">Seguridad</p>
           <h2>Cambiar contraseña</h2>
           <form className="cuenta-form" onSubmit={handlePassword}>
-            <label className="field">Contraseña actual<input name="currentPassword" type="password" required autoComplete="current-password" /></label>
-            <label className="field">Contraseña nueva (mínimo 10 caracteres)<input name="newPassword" type="password" required minLength="10" maxLength="128" autoComplete="new-password" /></label>
+            <label className="field">Contraseña actual<PasswordField name="currentPassword" required autoComplete="current-password" /></label>
+            <label className="field">Contraseña nueva (mínimo 10 caracteres)<PasswordField name="newPassword" required minLength="10" maxLength="128" autoComplete="new-password" /></label>
             <div className="form-foot"><button className="button" type="submit">Actualizar contraseña</button></div>
           </form>
         </section>
 
-        <section className="account-card">
+        <section className="account-card account-card--export">
           <p className="micro">Tus datos</p>
           <h2>Exportar información</h2>
           <p className="status">Descarga una copia de tus datos y de tus solicitudes.</p>
@@ -220,7 +227,7 @@ export default function Cuenta() {
           <h2>Eliminar mi cuenta</h2>
           <p className="status">Tu cuenta se borra y tus solicitudes quedan anonimizadas. Esta acción no se puede deshacer.</p>
           <form className="cuenta-form" onSubmit={handleDeleteAccount}>
-            <label className="field">Contraseña actual<input name="password" type="password" required autoComplete="current-password" /></label>
+            <label className="field">Contraseña actual<PasswordField name="password" required autoComplete="current-password" /></label>
             <div className="form-foot"><button className="btn-ghost link-button--danger" type="submit">Eliminar cuenta</button></div>
           </form>
         </section>

@@ -25,9 +25,12 @@ export default function Home() {
   useEffect(() => {
     if (location.hash !== "") {
       const target = document.getElementById(location.hash.slice(1));
-      if (target !== null) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (target !== null) {
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      }
     }
-  }, [location.hash, featured.status, works.status, categories.status]);
+  }, [location.hash]);
 
   const heroProducts = featured.data !== null && featured.data.length > 0 ? featured.data : null;
 

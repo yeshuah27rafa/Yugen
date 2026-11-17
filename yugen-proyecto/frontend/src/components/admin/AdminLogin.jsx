@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { apiPost } from "../../api/client.js";
 import LoginAttemptsNotice from "../cuenta/LoginAttemptsNotice.jsx";
+import PasswordField from "../cuenta/PasswordField.jsx";
 
 export default function AdminLogin({ onLogin }) {
   const [sending, setSending] = useState(false);
@@ -40,7 +41,7 @@ export default function AdminLogin({ onLogin }) {
         </label>
         <label className="field">
           Contraseña
-          <input name="password" type="password" required autoComplete="current-password" />
+          <PasswordField name="password" required autoComplete="current-password" />
         </label>
         <div className="form-foot">
           <button className="button" type="submit" disabled={sending}>

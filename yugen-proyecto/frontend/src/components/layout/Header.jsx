@@ -50,6 +50,17 @@ export default function Header({ works, categories, cartCount, onOpenCart, wishl
   function hoverKeep() { clearTimeout(closeTimer.current); }
   function toggle(name) { setOpen((current) => (current === name ? null : name)); }
 
+  function handleWordmarkClick(event) {
+    if (location.pathname === "/" && location.hash === "#hero") {
+      event.preventDefault();
+      const hero = document.getElementById("hero");
+      if (hero) {
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        hero.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      }
+    }
+  }
+
   function submitSearch(event) {
     event.preventDefault();
     const value = String(new FormData(event.currentTarget).get("q") || "").trim();
@@ -87,7 +98,13 @@ export default function Header({ works, categories, cartCount, onOpenCart, wishl
           </button>
         </nav>
 
-        <Link className="wordmark" to="/" aria-label="Yugen, inicio">YUGEN<span lang="ja" aria-hidden="true">幽玄</span></Link>
+        <Link className="wordmark" to="/#hero" onClick={handleWordmarkClick} aria-label="Yugen, volver al inicio de la portada">
+          <svg className="wordmark__home" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m3.5 10.5 8.5-7 8.5 7" />
+            <path d="M5.5 9.5v10h13v-10M9.5 19.5v-6h5v6" />
+          </svg>
+          YUGEN<span lang="ja" aria-hidden="true">幽玄</span>
+        </Link>
 
         <nav className="nav nav--right" aria-label="Búsqueda, cuenta, lista de deseos y carrito">
           {trigger("search", "Buscar", { className: "nav-link nav-hide-sm" })}

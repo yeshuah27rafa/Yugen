@@ -55,13 +55,18 @@ export default function Manifiesto() {
         </div>
       </section>
 
-      <section className="manifesto-page__statement" aria-label="Nuestra intención" data-reveal>
-        <p className="micro">Una mirada que invita, no que dicta</p>
-        <p className="manifesto-page__statement-text">No queremos decidir qué obra merece más atención ni decirte cómo apreciarla. Compartimos aquello que nos mueve y dejamos espacio para que cada persona encuentre su propia conexión.</p>
-        <span className="manifesto-page__line" aria-hidden="true" />
-      </section>
+      <div className="manifesto-guiding-flow">
+        <section className="manifesto-page__statement" aria-label="Nuestra intención" data-reveal>
+          <span className="manifesto-page__statement-shape" aria-hidden="true" />
+          <p className="micro">Una mirada que invita, no que dicta</p>
+          <ul className="manifesto-page__statement-points" aria-label="Nuestra forma de compartir la selección">
+            <li>No queremos decidir qué obra merece más atención ni decirte cómo apreciarla.</li>
+            <li>Compartimos aquello que nos mueve y dejamos espacio para que cada persona encuentre su propia conexión.</li>
+          </ul>
+          <span className="manifesto-page__line" aria-hidden="true" />
+        </section>
 
-      <section className="manifesto-principles" aria-labelledby="manifesto-principles-title">
+        <section className="manifesto-principles" aria-labelledby="manifesto-principles-title">
         <header className="manifesto-principles__head" data-reveal>
           <p className="micro">Lo que guía la selección</p>
           <h2 id="manifesto-principles-title">Una mirada, distintas maneras de conectar.</h2>
@@ -75,7 +80,8 @@ export default function Manifiesto() {
             </article>
           ))}
         </div>
-      </section>
+        </section>
+      </div>
 
       <section className="manifesto-discover" aria-labelledby="manifesto-discover-title">
         <header className="manifesto-discover__head" data-reveal>
@@ -117,9 +123,9 @@ export default function Manifiesto() {
         </div>
       </section>
 
-      <section className="manifesto-page__closing" data-reveal>
+      <section className="manifesto-page__closing" data-reveal aria-labelledby="manifesto-closing-title">
         <p className="micro">Sigue explorando</p>
-        <h2>La conexión no se explica por completo. Se encuentra.</h2>
+        <h2 id="manifesto-closing-title">La conexión no se explica por completo. Se encuentra.</h2>
         <Link className="button" to="/catalogo">Explorar el catálogo</Link>
       </section>
     </article>

@@ -164,6 +164,9 @@ test("una solicitud válida guarda snapshots y vacía el carrito guardado", asyn
       await sourceProduct.save();
     }
   }
+  const listResponse = await fetch(base + "/cuenta/solicitudes", { headers: { Cookie: session.cookie } });
+  const list = await listResponse.json();
+  assert.strictEqual(list.requests[0].items[0].price, saved.items[0].priceSnapshot, "el historial debe conservar el precio histórico para las vistas previas");
   assert.strictEqual(saved.contact.whatsapp, "61234567");
   const customer = await Customer.findOne({ email: "solicitud@yugen.test" });
   assert.strictEqual(customer.savedCart.length, 0);

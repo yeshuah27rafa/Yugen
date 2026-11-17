@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { apiPost } from "../../api/client.js";
+import PasswordField from "../../components/cuenta/PasswordField.jsx";
 
 export default function CuentaRegistro() {
   const [sending, setSending] = useState(false);
@@ -40,7 +41,7 @@ export default function CuentaRegistro() {
         <label className="field">Correo<input name="email" type="email" required autoComplete="email" /></label>
         <label className="field">
           Contraseña (mínimo 10 caracteres)
-          <input name="password" type="password" required minLength="10" maxLength="128" autoComplete="new-password" />
+          <PasswordField name="password" required minLength="10" maxLength="128" autoComplete="new-password" />
         </label>
         <label className="field field--check">
           <input name="privacyAccepted" type="checkbox" required />

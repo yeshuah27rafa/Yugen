@@ -124,13 +124,13 @@ async function listMyRequests(customerId) {
   const requests = await Request.find({ customer: customerId })
     .sort({ createdAt: -1 })
     .limit(50)
-    .select("code status createdAt deliveryMethod items.nameSnapshot items.quantity items.imageSnapshot");
+    .select("code status createdAt deliveryMethod items.nameSnapshot items.priceSnapshot items.quantity items.imageSnapshot");
   return requests.map((request) => ({
     code: request.code,
     status: request.status,
     createdAt: request.createdAt,
     deliveryMethod: request.deliveryMethod,
-    items: request.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity, image: item.imageSnapshot && item.imageSnapshot.url ? item.imageSnapshot : null }))
+    items: request.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity, price: item.priceSnapshot, image: item.imageSnapshot && item.imageSnapshot.url ? item.imageSnapshot : null }))
   }));
 }
 
