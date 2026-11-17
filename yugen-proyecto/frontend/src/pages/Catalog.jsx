@@ -11,6 +11,7 @@ export default function Catalog() {
   const { filters, updateFilter, clearFilters, queryString, hasActiveFilters } = useCatalogFilters();
   const products = useApi("/products?" + queryString);
   const works = useApi("/works");
+  const categories = useApi("/catalog/categories");
 
   return (
     <section className="catalog-page">
@@ -22,7 +23,7 @@ export default function Catalog() {
         <p>Consulta disponibilidad y precio. Coordinamos la compra directamente contigo.</p>
       </header>
 
-      <CatalogFilters filters={filters} works={works} onChange={updateFilter} />
+      <CatalogFilters filters={filters} works={works} categories={categories} onChange={updateFilter} />
 
       {products.status === "ready" ? (
         <p className="catalog-count" aria-live="polite">
@@ -30,17 +31,23 @@ export default function Catalog() {
         </p>
       ) : null}
 
-      <DataState
-        state={products}
-        emptyText={<EmptyResults hasActiveFilters={hasActiveFilters} onClear={clearFilters} />}
-        render={(items) => (
-          <div className="grid">
-            {items.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))}
-          </div>
-        )}
-      />
+      {products.status === "loading" ? (
+        <div className="grid catalog-skeleton" aria-label="Cargando piezas" aria-busy="true" role="status">
+          {Array.from({ length: 8 }, (_, index) => <span className="catalog-skeleton__card" key={index}><span /><span /><span /></span>)}
+        </div>
+      ) : (
+        <DataState
+          state={products}
+          emptyText={<EmptyResults hasActiveFilters={hasActiveFilters} onClear={clearFilters} />}
+          render={(items) => (
+            <div className="grid">
+              {items.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </div>
+          )}
+        />
+      )}
     </section>
   );
 }

@@ -7,6 +7,9 @@ import Home from "./pages/Home.jsx";
 import Catalog from "./pages/Catalog.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
 import ComingSoon from "./pages/ComingSoon.jsx";
+import Manifiesto from "./pages/Manifiesto.jsx";
+import Coleccion from "./pages/Coleccion.jsx";
+import Colecciones from "./pages/Colecciones.jsx";
 
 const Admin = lazy(() => import("./pages/Admin.jsx"));
 const Cuenta = lazy(() => import("./pages/cuenta/Cuenta.jsx"));
@@ -20,6 +23,7 @@ const CuentaSolicitud = lazy(() => import("./pages/cuenta/CuentaSolicitud.jsx"))
 const CuentaConfirmarCorreo = lazy(() => import("./pages/cuenta/CuentaConfirmarCorreo.jsx"));
 const Carrito = lazy(() => import("./pages/tienda/Carrito.jsx"));
 const Solicitud = lazy(() => import("./pages/tienda/Solicitud.jsx"));
+const Favoritos = lazy(() => import("./pages/Favoritos.jsx"));
 
 const LOADING = <section className="admin-page"><p className="status">Cargando…</p></section>;
 
@@ -33,9 +37,13 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="manifiesto" element={<Manifiesto />} />
+        <Route path="colecciones" element={<Colecciones />} />
+        <Route path="colecciones/:slug" element={<Coleccion />} />
         <Route path="catalogo" element={<Catalog />} />
         <Route path="producto/:slug" element={<ProductDetail />} />
         <Route path="carrito" element={lazyPage(<Carrito />)} />
+        <Route path="favoritos" element={lazyPage(<Favoritos />)} />
         <Route path="solicitud" element={lazyPage(<Solicitud />)} />
         <Route path="cuenta" element={lazyPage(<Cuenta />)} />
         <Route path="cuenta/registro" element={lazyPage(<CuentaRegistro />)} />

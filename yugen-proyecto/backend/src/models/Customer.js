@@ -21,6 +21,8 @@ const customerSchema = new mongoose.Schema({
     type: [{ product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" }, quantity: { type: Number, min: 1, max: 10 } }],
     default: []
   },
+  // Lista de deseos persistente del cliente. Solo contiene referencias a piezas del catálogo.
+  wishlist: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }], default: [] },
   // Solicitudes en estado "nueva". Se modifica solo con operaciones atómicas (ver requestService).
   pendingRequestCount: { type: Number, default: 0, min: 0 },
   // Cambio de correo: el nuevo correo solo se aplica al confirmarlo desde el enlace.

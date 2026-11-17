@@ -5,17 +5,17 @@ import { useApi } from "../../hooks/useApi.js";
 import DataState from "../DataState.jsx";
 
 const CARDS = [
-  { key: "pendingApproval", label: "Pendientes de aprobación" },
-  { key: "newToday", label: "Solicitudes nuevas hoy" },
-  { key: "inProcess", label: "Aprobadas o en proceso" },
-  { key: "customersTotal", label: "Cuentas registradas" },
-  { key: "customersUnverified", label: "Cuentas sin verificar" },
-  { key: "soldOut", label: "Piezas agotadas" },
-  { key: "lowStock", label: "Stock bajo (2 o menos)" },
-  { key: "messagesNew", label: "Mensajes sin revisar" }
+  { key: "pendingApproval", label: "Pendientes de aprobación", section: "solicitudes" },
+  { key: "newToday", label: "Solicitudes nuevas hoy", section: "solicitudes" },
+  { key: "inProcess", label: "Aprobadas o en proceso", section: "solicitudes" },
+  { key: "customersTotal", label: "Cuentas registradas", section: "clientes" },
+  { key: "customersUnverified", label: "Cuentas sin verificar", section: "clientes" },
+  { key: "soldOut", label: "Piezas agotadas", section: "piezas" },
+  { key: "lowStock", label: "Stock bajo (2 o menos)", section: "piezas" },
+  { key: "messagesNew", label: "Mensajes sin revisar", section: "mensajes" }
 ];
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ onNavigate }) {
   const summary = useApi("/admin/resumen");
   const [report, setReport] = useState({ kind: "", text: "" });
   const [running, setRunning] = useState(false);
@@ -50,14 +50,19 @@ export default function AdminDashboard() {
         render={(items) => (
           <div className="admin-cards">
             {CARDS.map((card) => (
-              <div className="admin-card" key={card.key}>
-                <p className="admin-card__value">{items[0][card.key]}</p>
-                <p className="status">{card.label}</p>
-              </div>
+              <button className="admin-card admin-card--button" key={card.key} type="button" onClick={() => onNavigate(card.section)} aria-label={`${card.label}: abrir ${card.section}`}>
+                <span className="admin-card__value">{items[0][card.key]}</span>
+                <span className="status">{card.label}</span>
+                <span className="admin-card__hint">Abrir sección ↗</span>
+              </button>
             ))}
           </div>
         )}
       />
+      <nav className="admin-quicklinks" aria-label="Configuración de la tienda">
+        <button type="button" className="btn-ghost" onClick={() => onNavigate("categorias")}>Administrar categorías ↗</button>
+        <button type="button" className="btn-ghost" onClick={() => onNavigate("obras")}>Administrar obras ↗</button>
+      </nav>
       <div className="form-foot">
         <button className="btn-ghost" type="button" onClick={runRetention} disabled={running}>
           {running ? "Ejecutando…" : "Ejecutar retención ahora"}

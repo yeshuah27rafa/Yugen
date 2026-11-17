@@ -1,5 +1,7 @@
 // components/home/EditorialSection.jsx
 // Por qué existe Yugen: criterio de selección. Texto propio, sin atribuir significados a productos concretos.
+import { Link } from "react-router-dom";
+
 export default function EditorialSection() {
   return (
     <section className="manifesto" id="manifiesto" aria-labelledby="editorial-title">
@@ -19,6 +21,7 @@ export default function EditorialSection() {
       <aside className="manifesto__def" data-reveal>
         <p className="micro" lang="ja">幽玄 · yūgen</p>
         <p>Lo profundo y sutil; aquello que sugiere más de lo que muestra.</p>
+        <Link className="text-link" to="/manifiesto">Conoce por qué existe Yugen</Link>
       </aside>
     </section>
   );

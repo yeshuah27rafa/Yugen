@@ -6,14 +6,17 @@ import { availabilityLabel, categoryLabel, formatPrice } from "../utils/format.j
 import ProductGallery from "../components/product/ProductGallery.jsx";
 import ProductInquiry from "../components/product/ProductInquiry.jsx";
 import AddToCartButton from "../components/cart/AddToCartButton.jsx";
+import WishlistToggle from "../components/WishlistToggle.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import DataState from "../components/DataState.jsx";
 import BackLink from "../components/layout/BackLink.jsx";
 import { useIsAdmin } from "../components/AdminContext.jsx";
+import { useCatalogCategories } from "../components/CatalogContext.jsx";
 
 export default function ProductDetail() {
   const { slug } = useParams();
   const isAdmin = useIsAdmin();
+  const categories = useCatalogCategories();
   const product = useApi(`/products/${encodeURIComponent(slug)}`);
   const related = useApi(`/products/${encodeURIComponent(slug)}/related`);
 
@@ -26,25 +29,29 @@ export default function ProductDetail() {
   }
 
   const item = product.data;
+  const categoryName = categories.find((category) => category.slug === item.category)?.name || categoryLabel(item.category);
   const inStock = item.availability === "en_stock";
 
   return (
     <article className="detail">
       <div className="detail__top">
         <BackLink to="/catalogo">Volver al catálogo</BackLink>
-        {isAdmin ? <Link className="edit-link" to="/admin">Editar en administración</Link> : null}
+        {isAdmin ? <Link className="edit-link" to={`/admin?section=piezas&edit=${encodeURIComponent(item.slug)}`}>Editar esta pieza</Link> : null}
       </div>
 
       <div className="detail__layout">
-        <ProductGallery images={item.images} name={item.name} product={item} />
+        <div className="detail__gallery-shell">
+          <ProductGallery images={item.images} name={item.name} product={item} />
+          <WishlistToggle product={item} variant="floating" className="detail__wishlist-float" />
+        </div>
 
         <div className="detail__info">
           <p className="detail__meta">
-            {categoryLabel(item.category)}
+            {categoryName}
             {item.work ? (
               <>
                 {" · "}
-                <Link to={`/catalogo?work=${item.work.slug}`}>{item.work.title}</Link>
+                <Link to={`/colecciones/${item.work.slug}`}>{item.work.title}</Link>
               </>
             ) : null}
           </p>
@@ -76,6 +83,7 @@ export default function ProductDetail() {
           ) : null}
 
           <AddToCartButton productId={item._id} availability={item.availability} />
+          <WishlistToggle product={item} variant="inline" className="detail__wishlist-inline" />
           <ProductInquiry product={item} />
         </div>
       </div>

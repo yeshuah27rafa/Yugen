@@ -37,10 +37,48 @@ test("GET /works devuelve las obras cargadas", async () => {
   assert.ok(data.length > 0);
 });
 
+test("GET /works/:slug devuelve portada y sinopsis para la página de colección", async () => {
+  const { status, data } = await getJson("/works/lain");
+  assert.strictEqual(status, 200);
+  assert.strictEqual(data.slug, "lain");
+  assert.ok(data.cover.startsWith("/assets/"));
+  assert.ok(data.synopsis.length > 0);
+});
+
+test("las novedades incluyen los cinco productos de muestra", async () => {
+  const { status, data } = await getJson("/products/new");
+  assert.strictEqual(status, 200);
+  const slugs = data.map((item) => item.slug);
+  ["pin-unidad-01", "figura-mima", "mousepad-lain", "manga-violet-vol-1", "llavero-violet"].forEach((slug) => {
+    assert.ok(slugs.includes(slug), `falta producto de muestra: ${slug}`);
+  });
+});
+
 test("GET /products/featured devuelve solo productos destacados", async () => {
   const { data } = await getJson("/products/featured");
   assert.ok(data.length > 0);
   data.forEach((product) => assert.strictEqual(product.featured, true));
+});
+
+test("GET /products/recommended devuelve la selección editorial independiente", async () => {
+  const { data } = await getJson("/products/recommended");
+  assert.ok(data.length > 0);
+  data.forEach((product) => assert.strictEqual(product.recommended, true));
+});
+
+test("los productos de muestra del hero no se repiten por defecto en recomendaciones", async () => {
+  const { data: featured } = await getJson("/products/featured");
+  const { data: recommended } = await getJson("/products/recommended");
+  const featuredSlugs = new Set(featured.map((product) => product.slug));
+  assert.ok(recommended.length > 0);
+  recommended.forEach((product) => assert.strictEqual(featuredSlugs.has(product.slug), false));
+});
+
+test("GET /catalog/categories devuelve categorías editables y visibles", async () => {
+  const { status, data } = await getJson("/catalog/categories");
+  assert.strictEqual(status, 200);
+  assert.ok(data.some((item) => item.slug === "pin"));
+  assert.ok(data.every((item) => item.active !== false));
 });
 
 test("cada producto expone mainImage para las tarjetas", async () => {

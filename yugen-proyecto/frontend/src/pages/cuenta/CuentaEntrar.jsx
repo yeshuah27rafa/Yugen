@@ -49,6 +49,7 @@ export default function CuentaEntrar() {
     <section className="cuenta-page">
       <BackLink to={backTarget}>{backTarget === "/" ? "Volver a la tienda" : "Volver"}</BackLink>
       <h1>Entrar</h1>
+      {location.state && location.state.message ? <p className="account-intent" role="status">{location.state.message}</p> : null}
       <form className="cuenta-form" onSubmit={handleSubmit}>
         <label className="field">Correo<input name="email" type="email" required autoComplete="username" /></label>
         <label className="field">Contraseña<input name="password" type="password" required autoComplete="current-password" /></label>

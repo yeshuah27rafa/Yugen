@@ -7,6 +7,7 @@ const Product = require("../models/Product");
 const asyncHandler = require("../utils/asyncHandler");
 const honeypot = require("../middleware/honeypot");
 const { readConfig } = require("../config/env");
+const { recordAdminChange } = require("../services/auditLogService");
 
 const router = express.Router();
 
@@ -44,7 +45,8 @@ router.post("/", contactLimiter, honeypot, asyncHandler(async (req, res) => {
     productId = product._id;
   }
 
-  await Contact.create({ name, email, message, product: productId });
+  const contact = await Contact.create({ name, email, message, product: productId, subjectType: productId ? "product" : "general" });
+  await recordAdminChange({ email: "Visitante" }, { entityType: "mensaje", entityId: contact._id, entityLabel: productId ? "Consulta de producto" : "Contacto general", action: "creado", summary: productId ? "Se recibió una consulta vinculada a una pieza." : "Se recibió un mensaje desde el formulario de contacto." });
   return res.status(201).json({ ok: true });
 }));
 

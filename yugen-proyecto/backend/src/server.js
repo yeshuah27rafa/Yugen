@@ -22,6 +22,7 @@ async function start() {
   await mongoose.connect(process.env.MONGODB_URI);
   console.log("Conectado a MongoDB.");
   await seedIfEmpty();
+  await require("./services/adminRequestService").reconcilePending();
   app.listen(PORT, () => console.log(`API lista en http://localhost:${PORT}/api`));
 
   // Retención diaria. unref() evita que este temporizador mantenga vivo el proceso.

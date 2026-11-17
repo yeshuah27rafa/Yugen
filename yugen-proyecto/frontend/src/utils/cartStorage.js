@@ -5,6 +5,11 @@ const KEY = "yugen_carrito";
 const MAX_LINES = 20;
 const MAX_QTY = 10;
 export const CART_EVENT = "yugen-cart-changed";
+export const CART_OPEN_EVENT = "yugen-cart-open";
+
+export function openCartDrawer() {
+  window.dispatchEvent(new Event(CART_OPEN_EVENT));
+}
 
 // Lee el carrito y descarta cualquier dato corrupto o manipulado sin romper la página.
 export function readCart() {

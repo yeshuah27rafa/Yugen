@@ -6,6 +6,7 @@ const contactSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, trim: true },
   message: { type: String, required: true, trim: true },
+  subjectType: { type: String, enum: ["general", "product"], default: "general" },
   product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", default: null },
   status: { type: String, enum: ["nuevo", "revisado"], default: "nuevo" },
   reviewedAt: { type: Date, default: null }

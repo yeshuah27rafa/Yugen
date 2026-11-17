@@ -2,12 +2,10 @@
 // Encabezado fijo. Izquierda: Catálogo y Colecciones. Derecha: Buscar, Cuenta y Carrito. Menús con hover, clic, teclado y Escape.
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CATEGORY_OPTIONS } from "../../utils/catalogOptions.js";
+import { categoryOptionsFromState } from "../../utils/catalogOptions.js";
 import { useIsAdmin } from "../AdminContext.jsx";
 
-const CATEGORIES = CATEGORY_OPTIONS.filter((option) => option.value !== "");
-
-export default function Header({ works, cartCount }) {
+export default function Header({ works, categories, cartCount, onOpenCart, wishlistCount = 0, onOpenWishlist }) {
   const [open, setOpen] = useState(null); // shop | col | search | acc | menu | null
   const location = useLocation();
   const navigate = useNavigate();
@@ -16,6 +14,7 @@ export default function Header({ works, cartCount }) {
   const searchRef = useRef(null);
   const closeTimer = useRef(0);
   const workList = works.status === "ready" ? works.data : [];
+  const categoryList = categoryOptionsFromState(categories, false);
 
   useEffect(() => { setOpen(null); }, [location.pathname, location.search]);
 
@@ -80,7 +79,8 @@ export default function Header({ works, cartCount }) {
         <nav className="nav nav--left" aria-label="Principal">
           <span className="nav-split">
             <Link className="nav-link nav-link--first" to="/catalogo" onMouseEnter={() => hoverOpen("shop")} onMouseLeave={hoverLeave}>Catálogo</Link>
-            {trigger("col", "Colecciones")}
+            <Link className="nav-link" to="/colecciones" onMouseEnter={() => hoverOpen("col")} onMouseLeave={hoverLeave} onFocus={() => setOpen("col")}>Colecciones</Link>
+            <Link className="nav-link nav-link--editorial" to="/manifiesto">Por qué existe Yugen</Link>
           </span>
           <button type="button" className="nav-link nav-menu" aria-expanded={open === "menu"} aria-controls="panel-menu" onClick={() => toggle("menu")}>
             {open === "menu" ? "Cerrar" : "Menú"}
@@ -89,30 +89,33 @@ export default function Header({ works, cartCount }) {
 
         <Link className="wordmark" to="/" aria-label="Yugen, inicio">YUGEN<span lang="ja" aria-hidden="true">幽玄</span></Link>
 
-        <nav className="nav nav--right" aria-label="Búsqueda, cuenta y carrito">
+        <nav className="nav nav--right" aria-label="Búsqueda, cuenta, lista de deseos y carrito">
           {trigger("search", "Buscar", { className: "nav-link nav-hide-sm" })}
           <Link className="nav-link nav-hide-sm" to="/cuenta" onMouseEnter={() => hoverOpen("acc")} onMouseLeave={hoverLeave}>Cuenta</Link>
           <button type="button" className="nav-link nav-show-sm" aria-expanded={open === "search"} aria-controls="panel-search" onClick={() => toggle("search")}>Buscar</button>
-          <Link className="nav-link nav-cart" to="/carrito" aria-label={`Carrito, ${cartCount} ${cartCount === 1 ? "pieza" : "piezas"}`}>
+          <button className="nav-link nav-wishlist" type="button" onClick={onOpenWishlist} aria-label={`Abrir lista de deseos, ${wishlistCount} ${wishlistCount === 1 ? "pieza" : "piezas"}`}>
+            <span aria-hidden="true">♡</span> <span className="nav-wishlist__label">Deseos</span> <span className="badge" aria-hidden="true">{wishlistCount}</span>
+          </button>
+          <button className="nav-link nav-cart" type="button" onClick={onOpenCart} aria-label={`Abrir vista rápida del carrito, ${cartCount} ${cartCount === 1 ? "pieza" : "piezas"}`}>
             Carrito <span className="badge" aria-hidden="true">{cartCount}</span>
-          </Link>
+          </button>
         </nav>
       </header>
 
       <div className={`panel${open === "shop" ? " is-on" : ""}`} id="panel-shop" onMouseEnter={hoverKeep} onMouseLeave={hoverLeave} hidden={open !== "shop"}>
         <ul className="panel__list">
           <li><Link to="/catalogo">Todo el catálogo</Link></li>
-          {CATEGORIES.map((c) => <li key={c.value}><Link to={`/catalogo?category=${c.value}`}>{c.label}</Link></li>)}
+          {categoryList.map((c) => <li key={c.value}><Link to={`/catalogo?category=${c.value}`}>{c.label}</Link></li>)}
         </ul>
       </div>
 
       <div className={`panel${open === "col" ? " is-on" : ""}`} id="panel-col" onMouseEnter={hoverKeep} onMouseLeave={hoverLeave} hidden={open !== "col"}>
-        <p className="panel__label">Colecciones por obra</p>
+        <div className="panel__heading"><p className="panel__label">Colecciones por obra</p><Link className="panel__all" to="/colecciones">Ver todas las colecciones ↗</Link></div>
         {works.status === "loading" ? <p className="status">Cargando obras…</p> : null}
         {works.status === "error" ? <p className="status">No pudimos cargar las obras. <Link className="link-button" to="/catalogo">Ver todo el catálogo</Link></p> : null}
         {works.status === "ready" && workList.length === 0 ? <p className="status">Pronto añadiremos las obras de la tienda.</p> : null}
         <ul className="panel__list panel__list--cols">
-          {workList.map((w) => <li key={w._id}><Link to={`/catalogo?work=${w.slug}`}>{w.title}{w.year ? <small>{w.year}</small> : null}</Link></li>)}
+          {workList.map((w) => <li key={w._id}><Link to={`/colecciones/${w.slug}`}>{w.title}{w.year ? <small>{w.year}</small> : null}</Link></li>)}
         </ul>
       </div>
 
@@ -127,10 +130,12 @@ export default function Header({ works, cartCount }) {
       <div className={`panel${open === "menu" ? " is-on" : ""}`} id="panel-menu" hidden={open !== "menu"}>
         <ul className="panel__list">
           <li><Link to="/catalogo">Catálogo</Link></li>
-          {CATEGORIES.map((c) => <li key={c.value}><Link className="sub" to={`/catalogo?category=${c.value}`}>{c.label}</Link></li>)}
-          <li><Link to="/#colecciones">Colecciones</Link></li>
+          {categoryList.map((c) => <li key={c.value}><Link className="sub" to={`/catalogo?category=${c.value}`}>{c.label}</Link></li>)}
+          <li><Link to="/colecciones">Todas las colecciones</Link></li>
+          <li><Link to="/manifiesto">Por qué existe Yugen</Link></li>
           <li><Link to="/cuenta">Cuenta</Link></li>
-          <li><Link to="/carrito">Carrito ({cartCount})</Link></li>
+          <li><Link to="/favoritos">Mi lista de deseos ({wishlistCount})</Link></li>
+          <li><Link to="/carrito">Carrito completo ({cartCount})</Link></li>
           <li><Link to="/#contacto">Contacto</Link></li>
           {isAdmin ? <li><Link to="/admin">Administración</Link></li> : null}
         </ul>
@@ -141,6 +146,7 @@ export default function Header({ works, cartCount }) {
           <li><Link to="/cuenta/entrar">Entrar</Link></li>
           <li><Link to="/cuenta/registro">Crear cuenta</Link></li>
           <li><Link to="/cuenta/solicitudes">Mis solicitudes</Link></li>
+          <li><Link to="/favoritos">Mi lista de deseos ({wishlistCount})</Link></li>
           {isAdmin ? <li><Link to="/admin">Administración</Link></li> : null}
         </ul>
       </div>

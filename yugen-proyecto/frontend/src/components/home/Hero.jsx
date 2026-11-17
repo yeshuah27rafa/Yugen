@@ -62,7 +62,7 @@ export default function Hero({ products }) {
         <p className="hero__lead">Pines, mangas, figuras y mousepads ligados a obras concretas, con la razón escrita junto a cada uno.</p>
         <div className="hero__actions">
           <Link className="button" to="/catalogo">Ver el catálogo</Link>
-          <a className="text-link" href="#manifiesto">Cómo elegimos</a>
+          <Link className="text-link" to="/#manifiesto">Cómo elegimos</Link>
         </div>
       </div>
 

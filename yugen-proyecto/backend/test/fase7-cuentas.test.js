@@ -19,6 +19,7 @@ const app = require("../src/app");
 const seedIfEmpty = require("../src/seed");
 const { OutboxMailer, setMailer } = require("../src/mail");
 const Customer = require("../src/models/Customer");
+const Product = require("../src/models/Product");
 
 let mongo;
 let server;
@@ -148,6 +149,40 @@ test("restablecer contraseña cierra las sesiones anteriores y el enlace es de u
 
   const me = await fetch(base + "/cuenta/me", { headers: { Cookie: oldCookie } });
   assert.strictEqual(me.status, 401);
+});
+
+test("el cliente puede guardar y recuperar su lista de deseos", async () => {
+  const login = await post("/cuenta/entrar", { email: "nuevo@yugen.test", password: "nueva-clave-segura-2" });
+  const session = await login.json();
+  const cookie = login.headers.getSetCookie()[0].split(";")[0];
+  const product = await Product.findOne();
+  assert.ok(product);
+  const save = await fetch(base + "/cuenta/favoritos", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Cookie: cookie, "X-CSRF-Token": session.csrfToken },
+    body: JSON.stringify({ productIds: [String(product._id), String(product._id)] })
+  });
+  const savedBody = await save.json();
+  assert.strictEqual(save.status, 200);
+  assert.strictEqual(savedBody.products.length, 1);
+  assert.strictEqual(String(savedBody.products[0]._id), String(product._id));
+  const read = await fetch(base + "/cuenta/favoritos", { headers: { Cookie: cookie } });
+  const readBody = await read.json();
+  assert.strictEqual(read.status, 200);
+  assert.strictEqual(readBody.products.length, 1);
+  assert.strictEqual(readBody.products[0].slug, product.slug);
+});
+
+test("la lista de deseos requiere sesión y CSRF para modificaciones", async () => {
+  const anonymous = await fetch(base + "/cuenta/favoritos");
+  assert.strictEqual(anonymous.status, 401);
+  const login = await post("/cuenta/entrar", { email: "nuevo@yugen.test", password: "nueva-clave-segura-2" });
+  const cookie = login.headers.getSetCookie()[0].split(";")[0];
+  const blocked = await fetch(base + "/cuenta/favoritos", {
+    method: "PUT", headers: { "Content-Type": "application/json", Cookie: cookie },
+    body: JSON.stringify({ productIds: [] })
+  });
+  assert.strictEqual(blocked.status, 403);
 });
 
 test("cambiar la contraseña exige la actual", async () => {

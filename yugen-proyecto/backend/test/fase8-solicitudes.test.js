@@ -144,6 +144,26 @@ test("una solicitud válida guarda snapshots y vacía el carrito guardado", asyn
   assert.match(body.code, /^YG-\d{6}$/);
   const saved = await Request.findOne({ code: body.code });
   assert.ok(saved.items[0].nameSnapshot.length > 0);
+  const sourceProduct = await Product.findById(productIds[0]);
+  if (sourceProduct.mainImage) {
+    assert.strictEqual(saved.items[0].imageSnapshot.url, sourceProduct.mainImage.url);
+    assert.strictEqual(saved.items[0].imageSnapshot.alt, sourceProduct.mainImage.alt || sourceProduct.name);
+    const originalImages = sourceProduct.images.map((image) => image.toObject());
+    try {
+      // Cambiar el catálogo después del envío no debe reescribir la imagen histórica.
+      sourceProduct.images = [{ url: "/assets/prueba-imagen-posterior.webp", alt: "Imagen posterior", isMain: true }];
+      await sourceProduct.save();
+      const detailResponse = await fetch(base + `/cuenta/solicitudes/${body.code}`, { headers: { Cookie: session.cookie } });
+      const detail = await detailResponse.json();
+      assert.strictEqual(detail.items[0].image.url, saved.items[0].imageSnapshot.url);
+      const listResponse = await fetch(base + "/cuenta/solicitudes", { headers: { Cookie: session.cookie } });
+      const list = await listResponse.json();
+      assert.strictEqual(list.requests[0].items[0].image.url, saved.items[0].imageSnapshot.url);
+    } finally {
+      sourceProduct.images = originalImages;
+      await sourceProduct.save();
+    }
+  }
   assert.strictEqual(saved.contact.whatsapp, "61234567");
   const customer = await Customer.findOne({ email: "solicitud@yugen.test" });
   assert.strictEqual(customer.savedCart.length, 0);

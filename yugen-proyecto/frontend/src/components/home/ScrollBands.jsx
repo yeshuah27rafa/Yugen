@@ -5,13 +5,15 @@ import { useScrollBands } from "../../hooks/useScrollBands.js";
 
 const KANJI = "電脳   夢   青   都   魔   紫   狩   奇   ";
 
-export default function ScrollBands({ works }) {
+export default function ScrollBands({ works, categories }) {
   const ref = useRef(null);
   useScrollBands(ref);
   const titles = works.status === "ready" && works.data.length > 0
     ? works.data.map((w) => w.title).join("   ✦   ") + "   ✦   "
     : "Serial Experiments Lain   ✦   Perfect Blue   ✦   Evangelion   ✦   Akira   ✦   Paprika   ✦   Madoka   ✦   ";
-  const cats = "Pines — Mangas — Figuras — Mousepads — Piezas elegidas por una razón — ";
+  const cats = categories.status === "ready" && categories.data.length > 0
+    ? categories.data.map((item) => item.name).join(" — ") + " — Piezas elegidas por una razón — "
+    : "Pines — Mangas — Figuras — Mousepads — Piezas elegidas por una razón — ";
   const rep = (text) => text + text + text + text;
   return (
     <section className="bands" ref={ref} aria-hidden="true">

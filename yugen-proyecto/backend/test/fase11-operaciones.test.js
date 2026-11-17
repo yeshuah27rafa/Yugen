@@ -170,3 +170,16 @@ test("el administrador crea una obra nueva", async () => {
   const response = await post("/admin/obras", { title: "Obra de prueba", slug: "obra-de-prueba", year: "2020" }, adminAuthed());
   assert.strictEqual(response.status, 201);
 });
+
+test("el año de una obra es opcional y acepta portada local con sinopsis", async () => {
+  const response = await post("/admin/obras", {
+    title: "Colección sin año", slug: "coleccion-sin-ano", year: "",
+    synopsis: "Una descripción para la página de colección.",
+    cover: "/assets/yugen-samples/works/lain.svg", sortOrder: 55, showOnHome: true
+  }, adminAuthed());
+  const data = await response.json();
+  assert.strictEqual(response.status, 201);
+  assert.strictEqual(data.year, null);
+  assert.strictEqual(data.cover, "/assets/yugen-samples/works/lain.svg");
+  assert.strictEqual(data.synopsis, "Una descripción para la página de colección.");
+});

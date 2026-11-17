@@ -75,11 +75,9 @@ async function createRequest(customerId, body) {
   const productById = {};
   products.forEach((product) => { productById[String(product._id)] = product; });
 
-  // Corrección de contadores: el número real son las solicitudes "nueva", no el contador guardado.
-  const realPending = await Request.countDocuments({ customer: customerId, status: "nueva" });
-  await Customer.updateOne({ _id: customerId }, { $set: { pendingRequestCount: realPending } });
-
-  // Límite atómico: solo incrementa si el cliente tiene menos de tres pendientes.
+  // Límite atómico: el contador se actualiza junto con cada transición o eliminación.
+  // No recalculamos y sobrescribimos el valor aquí: varias solicitudes simultáneas podrían
+  // leer el mismo total y borrar entre sí el incremento, permitiendo superar el máximo.
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, pendingRequestCount: { $lt: MAX_PENDING } },
     { $inc: { pendingRequestCount: 1 } },
@@ -97,6 +95,7 @@ async function createRequest(customerId, body) {
         product: product._id,
         nameSnapshot: product.name,
         priceSnapshot: product.price,
+        imageSnapshot: product.mainImage ? { url: product.mainImage.url, alt: product.mainImage.alt || product.name } : { url: "", alt: product.name },
         quantity: line.quantity
       };
     });
@@ -125,13 +124,13 @@ async function listMyRequests(customerId) {
   const requests = await Request.find({ customer: customerId })
     .sort({ createdAt: -1 })
     .limit(50)
-    .select("code status createdAt deliveryMethod items.nameSnapshot items.quantity");
+    .select("code status createdAt deliveryMethod items.nameSnapshot items.quantity items.imageSnapshot");
   return requests.map((request) => ({
     code: request.code,
     status: request.status,
     createdAt: request.createdAt,
     deliveryMethod: request.deliveryMethod,
-    items: request.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity }))
+    items: request.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity, image: item.imageSnapshot && item.imageSnapshot.url ? item.imageSnapshot : null }))
   }));
 }
 
@@ -145,8 +144,10 @@ async function getMyRequest(customerId, code) {
     createdAt: request.createdAt,
     deliveryMethod: request.deliveryMethod,
     comment: request.comment,
-    items: request.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity, price: item.priceSnapshot })),
-    history: request.statusHistory.map((entry) => ({ to: entry.to, at: entry.at }))
+    items: request.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity, price: item.priceSnapshot, image: item.imageSnapshot && item.imageSnapshot.url ? item.imageSnapshot : null })),
+    history: request.statusHistory.map((entry) => ({ to: entry.to, at: entry.at })).concat(
+      request.contactedAt ? [{ to: "contactado", at: request.contactedAt }] : []
+    ).sort((a, b) => new Date(a.at) - new Date(b.at))
   };
 }
 

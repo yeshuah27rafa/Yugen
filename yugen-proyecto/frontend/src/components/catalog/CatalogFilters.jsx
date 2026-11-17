@@ -1,12 +1,12 @@
 // components/catalog/CatalogFilters.jsx
 // Barra de filtros: categorías, búsqueda por nombre, obra, disponibilidad y orden.
 import { useEffect, useState } from "react";
-import { AVAILABILITY_OPTIONS, CATEGORY_OPTIONS, SORT_OPTIONS } from "../../utils/catalogOptions.js";
+import { AVAILABILITY_OPTIONS, SORT_OPTIONS, categoryOptionsFromState } from "../../utils/catalogOptions.js";
 
 // Espera a que el usuario deje de escribir antes de consultar la API.
 const SEARCH_DELAY_MS = 350;
 
-export default function CatalogFilters({ filters, works, onChange }) {
+export default function CatalogFilters({ filters, works, categories, onChange }) {
   const [draft, setDraft] = useState(filters.q);
 
   // Si la URL cambia desde fuera (por ejemplo, al limpiar filtros), el texto se actualiza.
@@ -27,11 +27,12 @@ export default function CatalogFilters({ filters, works, onChange }) {
   }
 
   const workOptions = works.status === "ready" ? works.data : [];
+  const categoryOptions = categoryOptionsFromState(categories, true);
 
   return (
     <div className="filter-bar">
       <div className="chips" role="group" aria-label="Categorías">
-        {CATEGORY_OPTIONS.map((option) => (
+        {categoryOptions.map((option) => (
           <button
             key={option.value || "todo"}
             type="button"

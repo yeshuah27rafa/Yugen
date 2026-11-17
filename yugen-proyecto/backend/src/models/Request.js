@@ -6,6 +6,11 @@ const itemSchema = new mongoose.Schema({
   product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
   nameSnapshot: { type: String, required: true },
   priceSnapshot: { type: Number, default: null },
+  // Imagen de la pieza al enviar la solicitud; no cambia si el catálogo se actualiza después.
+  imageSnapshot: {
+    url: { type: String, default: "" },
+    alt: { type: String, default: "" }
+  },
   quantity: { type: Number, required: true, min: 1, max: 10 }
 }, { _id: false });
 

@@ -24,5 +24,8 @@ const CATEGORY_LABELS = {
 };
 
 export function categoryLabel(value) {
-  return CATEGORY_LABELS[value] || "Otro";
+  if (CATEGORY_LABELS[value]) return CATEGORY_LABELS[value];
+  const slug = String(value || "").trim();
+  if (slug === "") return "Categoría";
+  return slug.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
 }

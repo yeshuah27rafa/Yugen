@@ -11,6 +11,7 @@ const cartRoutes = require("./routes/cart");
 const requestRoutes = require("./routes/requests");
 const worksRoutes = require("./routes/works");
 const productsRoutes = require("./routes/products");
+const catalogRoutes = require("./routes/catalog");
 const contactRoutes = require("./routes/contact");
 
 const app = express();
@@ -34,6 +35,9 @@ app.use("/api/solicitudes", requestRoutes);
 app.use("/api/works", worksRoutes);
 app.use("/api/products", productsRoutes);
 app.use("/api/contact", contactRoutes);
+// Alias en español utilizado por el formulario y la suite histórica de Fase 8.
+app.use("/api/contacto", contactRoutes);
+app.use("/api/catalog", catalogRoutes);
 
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "Ruta no encontrada." });
@@ -52,7 +56,7 @@ app.use((error, req, res, next) => {
     return res.status(error.status).json({ error: error.message });
   }
   if (error.code === 11000) {
-    return res.status(409).json({ error: "Ya existe una pieza con ese enlace (slug). Cámbialo e intenta de nuevo." });
+    return res.status(409).json({ error: "Ya existe un registro con ese enlace (slug). Cámbialo e intenta de nuevo." });
   }
   if (error.name === "ValidationError") {
     return res.status(400).json({ error: "Faltan datos o son inválidos." });

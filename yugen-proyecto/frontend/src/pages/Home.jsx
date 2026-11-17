@@ -1,42 +1,43 @@
 // pages/Home.jsx
-// Portada: pide destacados, novedades y obras una sola vez y los reparte entre las secciones.
+// Portada editorial: conserva la secuencia original y suma las capacidades dinámicas del catálogo.
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useApi } from "../hooks/useApi.js";
 import { useReveal } from "../hooks/useReveal.js";
 import Hero from "../components/home/Hero.jsx";
 import ScrollBands from "../components/home/ScrollBands.jsx";
+import EditorialSection from "../components/home/EditorialSection.jsx";
 import FeaturedSection from "../components/home/FeaturedSection.jsx";
 import CategoriesSection from "../components/home/CategoriesSection.jsx";
 import WorksSection from "../components/home/WorksSection.jsx";
-import EditorialSection from "../components/home/EditorialSection.jsx";
 import NewSection from "../components/home/NewSection.jsx";
 import ContactSection from "../components/home/ContactSection.jsx";
 
 export default function Home() {
   const featured = useApi("/products/featured");
+  const recommended = useApi("/products/recommended");
+  const categories = useApi("/catalog/categories");
   const newest = useApi("/products/new");
   const works = useApi("/works");
   const location = useLocation();
   useReveal();
 
-  // Permite llegar con /#contacto o /#colecciones desde el encabezado y hace scroll suave hasta la sección.
   useEffect(() => {
     if (location.hash !== "") {
       const target = document.getElementById(location.hash.slice(1));
-      if (target !== null) target.scrollIntoView({ behavior: "smooth" });
+      if (target !== null) target.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [location.hash, featured.status, works.status]);
+  }, [location.hash, featured.status, works.status, categories.status]);
 
   const heroProducts = featured.data !== null && featured.data.length > 0 ? featured.data : null;
 
   return (
     <>
       <Hero products={heroProducts} />
-      <ScrollBands works={works} />
+      <ScrollBands works={works} categories={categories} />
       <EditorialSection />
-      <FeaturedSection state={featured} />
-      <CategoriesSection />
+      <FeaturedSection state={recommended} />
+      <CategoriesSection state={categories} />
       <WorksSection state={works} />
       <NewSection state={newest} />
       <ContactSection />

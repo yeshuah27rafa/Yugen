@@ -2,7 +2,6 @@
 // Valida y normaliza los datos de una pieza antes de guardarla. Devuelve errores legibles en español.
 const mongoose = require("mongoose");
 
-const CATEGORIES = ["pin", "manga", "figura", "mousepad", "otro"];
 const AVAILABILITY = ["en_stock", "agotado", "pedido_exterior"];
 const MAX_IMAGES = 8;
 const MAX_SPECS = 10;
@@ -21,8 +20,10 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
-function isHttpUrl(value) {
-  return /^https?:\/\/\S+$/.test(value);
+function isAllowedImage(value) {
+  const remote = /^https?:\/\/[^\s]+$/i.test(value);
+  const localAsset = /^\/assets\/[a-zA-Z0-9_./-]+$/.test(value) && !value.includes("..");
+  return remote || localAsset;
 }
 
 function validateProduct(body) {
@@ -39,7 +40,7 @@ function validateProduct(body) {
   if (data.slug.length > 120) errors.push("El enlace (slug) no puede superar 120 caracteres.");
 
   data.category = text(body.category);
-  if (CATEGORIES.includes(data.category) === false) errors.push("La categoría no es válida.");
+  if (data.category.length > 40 || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.category) === false) errors.push("La categoría no es válida.");
 
   data.work = text(body.work);
   if (mongoose.isValidObjectId(data.work) === false) errors.push("Selecciona una obra.");
@@ -66,16 +67,23 @@ function validateProduct(body) {
   if (data.contexto.length > 1200) errors.push("La ficha contextual no puede superar 1200 caracteres.");
 
   data.featured = body.featured === true || body.featured === "true";
+  data.recommended = body.recommended === true || body.recommended === "true";
+  const featuredOrder = body.featuredOrder === undefined || body.featuredOrder === "" ? 0 : Number(body.featuredOrder);
+  const recommendedOrder = body.recommendedOrder === undefined || body.recommendedOrder === "" ? 0 : Number(body.recommendedOrder);
+  data.featuredOrder = featuredOrder;
+  data.recommendedOrder = recommendedOrder;
+  if (!Number.isInteger(featuredOrder) || featuredOrder < 0 || featuredOrder > 9999) errors.push("El orden del Hero debe ser un entero entre 0 y 9999.");
+  if (!Number.isInteger(recommendedOrder) || recommendedOrder < 0 || recommendedOrder > 9999) errors.push("El orden de recomendaciones debe ser un entero entre 0 y 9999.");
 
-  // Imágenes: se ignoran filas vacías; las demás deben tener una URL http(s). Solo una puede ser principal.
+  // Imágenes: admiten URL http(s) o ruta pública local segura de /assets/. Solo una puede ser principal.
   const rawImages = Array.isArray(body.images) ? body.images : [];
   const images = [];
   rawImages.forEach((image) => {
     const url = text(image && image.url);
     const alt = text(image && image.alt);
     if (url === "" && alt === "") return;
-    if (isHttpUrl(url) === false) {
-      errors.push("Una imagen no tiene una URL válida (debe empezar por http:// o https://).");
+    if (isAllowedImage(url) === false) {
+      errors.push("Una imagen debe usar una URL http(s) o una ruta local segura dentro de /assets/.");
       return;
     }
     images.push({ url, alt, isMain: image.isMain === true });

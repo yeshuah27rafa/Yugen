@@ -18,7 +18,7 @@ const specSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
-  category: { type: String, enum: ["pin", "manga", "figura", "mousepad", "otro"], required: true },
+  category: { type: String, required: true, trim: true, lowercase: true },
   work: { type: mongoose.Schema.Types.ObjectId, ref: "Work", required: true },
   // Precio opcional: null significa "consultar". Se administrará desde el panel en la etapa 4.
   price: { type: Number, min: 0, default: null },
@@ -29,7 +29,11 @@ const productSchema = new mongoose.Schema({
   specs: { type: [specSchema], default: [] },
   // Ficha contextual: opcional, explica la conexión del producto con su obra. Nunca se inventa.
   contexto: { type: String, default: "", maxlength: 1200 },
-  featured: { type: Boolean, default: false }
+  featured: { type: Boolean, default: false },
+  // Recomendación editorial: independiente del producto principal del hero.
+  recommended: { type: Boolean, default: false },
+  featuredOrder: { type: Number, min: 0, max: 9999 },
+  recommendedOrder: { type: Number, min: 0, max: 9999 }
 }, { timestamps: true });
 
 // Imagen principal calculada: la marcada como principal o, si no hay ninguna, la primera.
@@ -53,6 +57,7 @@ productSchema.set("toJSON", { virtuals: true });
 // Índices para las consultas frecuentes: catálogo por categoría y obra, destacados y novedades.
 productSchema.index({ category: 1, createdAt: -1 });
 productSchema.index({ work: 1, createdAt: -1 });
-productSchema.index({ featured: 1, updatedAt: -1 });
+productSchema.index({ featured: 1, featuredOrder: 1, updatedAt: -1 });
+productSchema.index({ recommended: 1, recommendedOrder: 1, updatedAt: -1 });
 
 module.exports = mongoose.model("Product", productSchema);

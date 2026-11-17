@@ -14,6 +14,8 @@ export default function Carrito() {
   const [detail, setDetail] = useState(() => ({ status: lines.length ? "loading" : "ready", lines: [], error: "" }));
   const [retryKey, setRetryKey] = useState(0);
   const [loggedIn, setLoggedIn] = useState(null);
+  const [sessionError, setSessionError] = useState("");
+  const [sessionRetry, setSessionRetry] = useState(0);
   const [contact, setContact] = useState(null);
   const linesKey = JSON.stringify(lines);
   const totalUnits = lines.reduce((sum, line) => sum + line.quantity, 0);
@@ -33,15 +35,21 @@ export default function Carrito() {
   }, [linesKey, retryKey]);
 
   useEffect(() => {
+    let active = true;
     clienteGet("/cuenta/me")
-      .then((data) => { setCustomerCsrfToken(data.csrfToken); setLoggedIn(true); })
-      .catch(() => setLoggedIn(false));
-    apiGet("/contacto/tienda").then(setContact).catch(() => setContact({ email: "", whatsapp: "" }));
-  }, []);
+      .then((data) => { if (active) { setCustomerCsrfToken(data.csrfToken); setSessionError(""); setLoggedIn(true); } })
+      .catch((failure) => {
+        if (!active) return;
+        if (failure.status === 401) { setCustomerCsrfToken(""); setLoggedIn(false); }
+        else { setSessionError(failure.message || "No pudimos comprobar tu sesión."); setLoggedIn("error"); }
+      });
+    apiGet("/contacto/tienda").then((data) => { if (active) setContact(data); }).catch(() => { if (active) setContact({ email: "", whatsapp: "" }); });
+    return () => { active = false; };
+  }, [sessionRetry]);
 
   function handleRequest() {
-    if (loggedIn) navigate("/solicitud");
-    else setLoggedIn(false);
+    if (loggedIn === true) navigate("/solicitud");
+    else if (loggedIn === false) setLoggedIn(false);
   }
 
   const priced = detail.lines.filter((line) => line.missing === false);
@@ -129,6 +137,14 @@ export default function Carrito() {
         </>
       ) : null}
 
+      {loggedIn === "error" ? (
+        <div className="cart-login-required" role="alert">
+          <h2>No pudimos comprobar tu sesión</h2>
+          <p className="status status--error">{sessionError}</p>
+          <button className="btn-ghost" type="button" onClick={() => { setLoggedIn(null); setSessionRetry((value) => value + 1); }}>Reintentar</button>
+        </div>
+      ) : null}
+
       {loggedIn === false ? (
         <div className="cart-login-required" role="status">
           <h2>Para solicitar necesitas una cuenta</h2>
@@ -139,16 +155,16 @@ export default function Carrito() {
           </div>
           <p className="status">¿Prefieres no crear cuenta? Puedes consultarnos {contactLine}{contactEmail}.</p>
         </div>
-      ) : (
+      ) : loggedIn === true ? (
         <button
           className="button"
           type="button"
           onClick={handleRequest}
-          disabled={loggedIn === null || detail.status !== "ready" || priced.length === 0}
+          disabled={detail.status !== "ready" || priced.length === 0}
         >
           Solicitar piezas
         </button>
-      )}
+      ) : loggedIn === null ? <p className="status status--loading" role="status">Comprobando tu cuenta…</p> : null}
     </section>
   );
 }

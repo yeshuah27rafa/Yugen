@@ -68,6 +68,7 @@ async function enrichLines(lines) {
       missing: false,
       name: product.name,
       slug: product.slug,
+      category: product.category,
       price: product.price,
       availability: product.availability,
       mainImage: product.mainImage,

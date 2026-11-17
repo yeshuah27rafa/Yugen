@@ -34,12 +34,12 @@ export default function AdminCustomers() {
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.name}</td>
-                  <td>{item.email}</td>
-                  <td>{item.verified ? "Sí" : "No"}</td>
-                  <td>{item.requestCount}</td>
-                  <td>{new Date(item.createdAt).toLocaleDateString()}</td>
-                  <td><button className="link-button link-button--danger" type="button" onClick={() => removeCustomer(item)}>Eliminar</button></td>
+                  <td data-label="Nombre">{item.name}</td>
+                  <td data-label="Correo">{item.email}</td>
+                  <td data-label="Verificada">{item.verified ? "Sí" : "No"}</td>
+                  <td data-label="Solicitudes">{item.requestCount}</td>
+                  <td data-label="Registro">{new Date(item.createdAt).toLocaleDateString()}</td>
+                  <td data-label="Acciones"><button className="link-button link-button--danger" type="button" onClick={() => removeCustomer(item)}>Eliminar</button></td>
                 </tr>
               ))}
             </tbody>

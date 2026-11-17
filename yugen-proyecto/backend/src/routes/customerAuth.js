@@ -8,6 +8,8 @@ const { getMailer } = require("../mail");
 const requestService = require("../services/requestService");
 const adminRequestService = require("../services/adminRequestService");
 const Request = require("../models/Request");
+const Product = require("../models/Product");
+const mongoose = require("mongoose");
 const honeypot = require("../middleware/honeypot");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
@@ -186,6 +188,33 @@ router.post("/correo/confirmar", asyncHandler(async (req, res) => {
   return res.json({ ok: true, message: "Tu correo fue actualizado. Inicia sesión con el nuevo." });
 }));
 
+// Lista de deseos del cliente. Las referencias inválidas o piezas eliminadas se descartan al leer.
+function wishlistProductShape(product) {
+  if (!product) return null;
+  return product.toJSON();
+}
+
+router.get("/favoritos", requireCustomer, asyncHandler(async (req, res) => {
+  const customer = await Customer.findById(req.customer.id)
+    .populate({ path: "wishlist", select: "name slug category work price availability images", populate: { path: "work", select: "title slug" } });
+  const products = (customer?.wishlist || []).map(wishlistProductShape).filter(Boolean);
+  return res.json({ products });
+}));
+
+router.put("/favoritos", requireCustomer, customerCsrf, asyncHandler(async (req, res) => {
+  const rawIds = req.body && req.body.productIds;
+  if (!Array.isArray(rawIds) || rawIds.length > 200) throw httpError(400, "La lista de deseos no es válida.");
+  const uniqueIds = [...new Set(rawIds.map((value) => String(value)))];
+  if (uniqueIds.some((id) => mongoose.Types.ObjectId.isValid(id) === false)) throw httpError(400, "Una de las piezas de la lista no es válida.");
+  const products = uniqueIds.length ? await Product.find({ _id: { $in: uniqueIds } }).select("_id") : [];
+  const valid = new Set(products.map((product) => String(product._id)));
+  const validIds = uniqueIds.filter((id) => valid.has(id)).map((id) => new mongoose.Types.ObjectId(id));
+  await Customer.updateOne({ _id: req.customer.id }, { $set: { wishlist: validIds } });
+  const updated = await Customer.findById(req.customer.id)
+    .populate({ path: "wishlist", select: "name slug category work price availability images", populate: { path: "work", select: "title slug" } });
+  return res.json({ products: (updated?.wishlist || []).map(wishlistProductShape).filter(Boolean) });
+}));
+
 // Solicitudes propias: lista y detalle sin notas internas.
 router.get("/solicitudes", requireCustomer, asyncHandler(async (req, res) => {
   return res.json({ requests: await requestService.listMyRequests(req.customer.id) });
@@ -199,11 +228,13 @@ router.get("/solicitudes/:code", requireCustomer, asyncHandler(async (req, res) 
 
 // Derecho de acceso: exporta los datos de la cuenta y sus solicitudes (sin contraseña ni tokens).
 router.get("/datos", requireCustomer, asyncHandler(async (req, res) => {
-  const customer = await Customer.findById(req.customer.id).select("name email createdAt emailVerifiedAt");
+  const customer = await Customer.findById(req.customer.id).select("name email createdAt emailVerifiedAt wishlist")
+    .populate({ path: "wishlist", select: "name slug category price availability" });
   const requests = await requestService.listMyRequests(req.customer.id);
   return res.json({
     profile: { name: customer.name, email: customer.email, createdAt: customer.createdAt, emailVerifiedAt: customer.emailVerifiedAt },
-    requests
+    requests,
+    wishlist: (customer.wishlist || []).filter(Boolean).map((product) => ({ id: String(product._id), name: product.name, slug: product.slug, category: product.category }))
   });
 }));
 

@@ -2,9 +2,8 @@
 // Pie breve: catálogo, cuenta y contacto real de la tienda. Acceso administrativo discreto.
 import { Link } from "react-router-dom";
 import { useApi } from "../../hooks/useApi.js";
-import { CATEGORY_OPTIONS } from "../../utils/catalogOptions.js";
 
-export default function Footer() {
+export default function Footer({ categories }) {
   const contact = useApi("/contacto/tienda");
   const info = contact.status === "ready" ? contact.data : { email: "", whatsapp: "" };
   return (
@@ -13,13 +12,15 @@ export default function Footer() {
       <div className="site-footer__cols">
         <nav aria-label="Catálogo">
           <h2>Catálogo</h2>
-          {CATEGORY_OPTIONS.filter((c) => c.value !== "").map((c) => <Link key={c.value} to={`/catalogo?category=${c.value}`}>{c.label}</Link>)}
+          {(categories && categories.status === "ready" ? categories.data.slice(0, 4) : []).map((c) => <Link key={c.slug} to={`/catalogo?category=${c.slug}`}>{c.name}</Link>)}
+          <Link to="/catalogo">Ver todo el catálogo ↗</Link>
         </nav>
         <nav aria-label="Cuenta">
           <h2>Cuenta</h2>
           <Link to="/cuenta/entrar">Entrar</Link>
           <Link to="/cuenta/solicitudes">Mis solicitudes</Link>
           <Link to="/carrito">Carrito</Link>
+          <Link to="/manifiesto">Nuestra mirada</Link>
         </nav>
         <div>
           <h2>Contacto</h2>

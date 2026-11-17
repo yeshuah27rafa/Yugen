@@ -6,13 +6,20 @@ import { apiGet } from "../api/client.js";
 import { useApi } from "../hooks/useApi.js";
 import { useCart } from "../hooks/useCart.js";
 import { AdminContext } from "./AdminContext.jsx";
+import { CatalogProvider } from "./CatalogContext.jsx";
 import Header from "./layout/Header.jsx";
 import Footer from "./layout/Footer.jsx";
+import CartDrawer from "./cart/CartDrawer.jsx";
+import { openCartDrawer } from "../utils/cartStorage.js";
+import WishlistDrawer from "./WishlistDrawer.jsx";
+import { WishlistProvider, openWishlistDrawer, useWishlist } from "./WishlistContext.jsx";
 
-export default function Layout() {
+function LayoutContent() {
+  const wishlist = useWishlist();
   const location = useLocation();
   const cartLines = useCart();
   const works = useApi("/works");
+  const categories = useApi("/catalog/categories");
   const [isAdmin, setIsAdmin] = useState(false);
   const cartCount = cartLines.reduce((sum, line) => sum + line.quantity, 0);
 
@@ -30,15 +37,32 @@ export default function Layout() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    function refreshCatalog() {
+      categories.reload();
+      works.reload();
+    }
+    window.addEventListener("yugen:catalog-updated", refreshCatalog);
+    return () => window.removeEventListener("yugen:catalog-updated", refreshCatalog);
+  }, [categories.reload, works.reload]);
+
   return (
     <AdminContext.Provider value={{ isAdmin, setIsAdmin }}>
-      <a className="skip-link" href="#main">Saltar al contenido</a>
-      <Header works={works} cartCount={cartCount} />
-      <main id="main" tabIndex={-1}>
-        <Outlet />
-      </main>
-      <Footer />
-      {isAdmin ? <Link className="admin-pill" to="/admin">Modo administración</Link> : null}
+      <CatalogProvider categories={categories.status === "ready" ? categories.data : []}>
+        <a className="skip-link" href="#main">Saltar al contenido</a>
+        <Header works={works} categories={categories} cartCount={cartCount} onOpenCart={openCartDrawer} wishlistCount={wishlist.count} onOpenWishlist={openWishlistDrawer} />
+        <main id="main" tabIndex={-1}>
+          <Outlet />
+        </main>
+        <Footer categories={categories} />
+        <CartDrawer />
+        <WishlistDrawer />
+        {isAdmin ? <Link className="admin-pill" to="/admin">Modo administración</Link> : null}
+      </CatalogProvider>
     </AdminContext.Provider>
   );
+}
+
+export default function Layout() {
+  return <WishlistProvider><LayoutContent /></WishlistProvider>;
 }

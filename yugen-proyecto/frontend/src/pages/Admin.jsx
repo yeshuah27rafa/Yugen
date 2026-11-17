@@ -1,6 +1,7 @@
 // pages/Admin.jsx
 // Administración: comprueba la sesión y muestra el login o el panel con sus secciones.
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiGet, apiPost, setCsrfToken } from "../api/client.js";
 import AdminLogin from "../components/admin/AdminLogin.jsx";
 import AdminPanel from "../components/admin/AdminPanel.jsx";
@@ -8,22 +9,39 @@ import AdminDashboard from "../components/admin/AdminDashboard.jsx";
 import AdminRequests from "../components/admin/AdminRequests.jsx";
 import AdminCustomers from "../components/admin/AdminCustomers.jsx";
 import AdminMessages from "../components/admin/AdminMessages.jsx";
+import AdminCatalogManager from "../components/admin/AdminCatalogManager.jsx";
+import AdminWorks from "../components/admin/AdminWorks.jsx";
+import AdminAuditLog from "../components/admin/AdminAuditLog.jsx";
 import { useSetIsAdmin } from "../components/AdminContext.jsx";
 import BackLink from "../components/layout/BackLink.jsx";
 
 const SECTIONS = [
   { key: "resumen", label: "Resumen" },
   { key: "piezas", label: "Piezas" },
+  { key: "categorias", label: "Categorías" },
+  { key: "obras", label: "Obras" },
   { key: "solicitudes", label: "Solicitudes" },
   { key: "clientes", label: "Clientes" },
-  { key: "mensajes", label: "Mensajes" }
+  { key: "mensajes", label: "Mensajes" },
+  { key: "registro", label: "Registro de ediciones" }
 ];
 
 export default function Admin() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const setGlobalAdmin = useSetIsAdmin();
   const [session, setSession] = useState({ status: "checking", email: "" });
   const [logoutError, setLogoutError] = useState("");
-  const [section, setSection] = useState("resumen");
+  const initialSection = SECTIONS.some((item) => item.key === searchParams.get("section")) ? searchParams.get("section") : "resumen";
+  const [section, setSection] = useState(initialSection);
+  const initialProductSlug = searchParams.get("edit") || "";
+
+  function goToSection(key) {
+    setSection(key);
+    const next = new URLSearchParams(searchParams);
+    next.set("section", key);
+    next.delete("edit");
+    setSearchParams(next, { replace: true });
+  }
 
   useEffect(() => {
     document.title = "Administración · Yugen";
@@ -90,17 +108,20 @@ export default function Admin() {
             type="button"
             className={section === item.key ? "admin-nav__item admin-nav__item--on" : "admin-nav__item"}
             aria-current={section === item.key ? "page" : undefined}
-            onClick={() => setSection(item.key)}
+            onClick={() => goToSection(item.key)}
           >
             {item.label}
           </button>
         ))}
       </nav>
-      {section === "resumen" ? <AdminDashboard /> : null}
-      {section === "piezas" ? <AdminPanel email={session.email} onLogout={handleLogout} logoutError={logoutError} /> : null}
+      {section === "resumen" ? <AdminDashboard onNavigate={goToSection} /> : null}
+      {section === "piezas" ? <AdminPanel email={session.email} onLogout={handleLogout} logoutError={logoutError} initialProductSlug={initialProductSlug} /> : null}
+      {section === "categorias" ? <AdminCatalogManager /> : null}
+      {section === "obras" ? <AdminWorks /> : null}
       {section === "solicitudes" ? <AdminRequests /> : null}
       {section === "clientes" ? <AdminCustomers /> : null}
       {section === "mensajes" ? <AdminMessages /> : null}
+      {section === "registro" ? <AdminAuditLog /> : null}
       {section !== "piezas" ? (
         <div className="form-foot">
           <p className="status">Sesión: {session.email}</p>

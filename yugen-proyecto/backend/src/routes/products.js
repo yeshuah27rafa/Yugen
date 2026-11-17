@@ -51,8 +51,18 @@ router.get("/", asyncHandler(async (req, res) => {
 // Destacados para la selección de la portada.
 router.get("/featured", asyncHandler(async (req, res) => {
   const products = await Product.find({ featured: true })
-    .sort({ updatedAt: -1 })
+    .sort({ featuredOrder: 1, updatedAt: -1, _id: 1 })
     .limit(6)
+    .populate("work", WORK_FIELDS);
+  return res.json(products);
+}));
+
+// Recomendaciones editoriales: selección distinta de los productos principales del hero.
+// Los documentos antiguos sin el campo conservan temporalmente su selección anterior.
+router.get("/recommended", asyncHandler(async (req, res) => {
+  const products = await Product.find({ $or: [{ recommended: true }, { recommended: { $exists: false }, featured: true }] })
+    .sort({ recommendedOrder: 1, updatedAt: -1, _id: 1 })
+    .limit(8)
     .populate("work", WORK_FIELDS);
   return res.json(products);
 }));
@@ -61,7 +71,7 @@ router.get("/featured", asyncHandler(async (req, res) => {
 router.get("/new", asyncHandler(async (req, res) => {
   const products = await Product.find()
     .sort({ createdAt: -1 })
-    .limit(8)
+    .limit(12)
     .populate("work", WORK_FIELDS);
   return res.json(products);
 }));

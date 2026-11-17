@@ -42,6 +42,16 @@ before(async () => {
     contexto: "Ficha de prueba."
   });
 
+  // Fixture realmente vacío: los productos de muestra del seed sí incluyen texto editorial.
+  await Product.create({
+    name: "Pieza sin ficha",
+    slug: "pieza-sin-ficha",
+    category: "pin",
+    work: work._id,
+    price: 5,
+    availability: "en_stock"
+  });
+
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}/api`;
 });
@@ -67,7 +77,7 @@ test("mainImage devuelve la imagen marcada como principal", async () => {
 });
 
 test("un producto sin características ni ficha devuelve listas vacías", async () => {
-  const { data } = await getJson("/products/figura-mima");
+  const { data } = await getJson("/products/pieza-sin-ficha");
   assert.deepStrictEqual(data.specs, []);
   assert.strictEqual(data.contexto, "");
 });

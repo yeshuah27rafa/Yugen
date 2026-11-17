@@ -1,19 +1,33 @@
 // components/admin/AdminPanel.jsx
 // Panel de piezas: lista, alta, edición y eliminación. Recarga los datos tras cada cambio.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiDelete } from "../../api/client.js";
 import { useApi } from "../../hooks/useApi.js";
 import DataState from "../DataState.jsx";
 import ProductList from "./ProductList.jsx";
 import ProductForm from "./ProductForm.jsx";
 
-export default function AdminPanel({ email, onLogout, logoutError }) {
+export default function AdminPanel({ email, onLogout, logoutError, initialProductSlug }) {
   const products = useApi("/admin/products");
   const works = useApi("/works");
+  const categories = useApi("/admin/catalog/categories");
+  const initialEditHandled = useRef(false);
   const [editing, setEditing] = useState(null); // null: lista; "new": alta; objeto: edición
   const [notice, setNotice] = useState({ kind: "", text: "" });
 
   const sessionExpired = products.status === "error" && products.httpStatus === 401;
+
+  useEffect(() => {
+    if (initialEditHandled.current || !initialProductSlug || products.status !== "ready") return;
+    const target = products.data.find((item) => item.slug === initialProductSlug);
+    initialEditHandled.current = true;
+    if (target) {
+      setEditing(target);
+      setNotice({ kind: "success", text: `Editando directamente: ${target.name}.` });
+    } else {
+      setNotice({ kind: "error", text: "No encontramos esa pieza en administración. Puedes localizarla en el listado." });
+    }
+  }, [initialProductSlug, products.status, products.data]);
 
   function handleSaved() {
     setEditing(null);
@@ -64,6 +78,7 @@ export default function AdminPanel({ email, onLogout, logoutError }) {
           render={(items) => (
             <ProductList
               products={items}
+              categories={categories.status === "ready" ? categories.data : []}
               onEdit={(product) => { setNotice({ kind: "", text: "" }); setEditing(product); }}
               onDelete={handleDelete}
             />
@@ -73,6 +88,7 @@ export default function AdminPanel({ email, onLogout, logoutError }) {
         <ProductForm
           product={editing === "new" ? null : editing}
           worksState={works}
+          categoriesState={categories}
           onSaved={handleSaved}
           onCancel={() => setEditing(null)}
         />

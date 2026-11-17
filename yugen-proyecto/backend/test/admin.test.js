@@ -86,6 +86,51 @@ test("una escritura sin token CSRF responde 403", async () => {
   assert.strictEqual(response.status, 403);
 });
 
+test("el administrador puede crear una categoría para el catálogo", async () => {
+  const response = await adminFetch("/admin/catalog/categories", {
+    method: "POST",
+    headers: { "X-CSRF-Token": csrfToken },
+    body: JSON.stringify({ name: "Ediciones especiales", slug: "ediciones-especiales", description: "Piezas en formatos especiales", kanji: "特別", seed: "Paprika", sortOrder: 60, active: true, showOnHome: true })
+  });
+  const data = await response.json();
+  assert.strictEqual(response.status, 201);
+  assert.strictEqual(data.slug, "ediciones-especiales");
+
+  const updatedResponse = await adminFetch(`/admin/catalog/categories/${data._id}`, {
+    method: "PUT",
+    headers: { "X-CSRF-Token": csrfToken },
+    body: JSON.stringify({
+      name: "Ediciones y formatos",
+      slug: "ediciones-especiales",
+      description: "Una selección de formatos para conservar cerca una obra.",
+      kanji: "特別",
+      seed: "Paprika",
+      sortOrder: 65,
+      active: true,
+      showOnHome: false
+    })
+  });
+  const updated = await updatedResponse.json();
+  assert.strictEqual(updatedResponse.status, 200);
+  assert.strictEqual(updated.name, "Ediciones y formatos");
+  assert.strictEqual(updated.sortOrder, 65);
+  assert.strictEqual(updated.showOnHome, false);
+});
+
+test("el administrador puede actualizar la visibilidad de una obra en el índice", async () => {
+  const works = await (await fetch(base + "/works")).json();
+  const work = works[0];
+  const response = await adminFetch(`/admin/obras/${work._id}`, {
+    method: "PUT",
+    headers: { "X-CSRF-Token": csrfToken },
+    body: JSON.stringify({ title: work.title, slug: work.slug, year: work.year || "", synopsis: work.synopsis || "", cover: work.cover || "", sortOrder: 25, showOnHome: false })
+  });
+  const data = await response.json();
+  assert.strictEqual(response.status, 200);
+  assert.strictEqual(data.showOnHome, false);
+  assert.strictEqual(data.sortOrder, 25);
+});
+
 test("crea una pieza con token CSRF y genera el slug", async () => {
   const works = await (await fetch(base + "/works")).json();
   const response = await adminFetch("/admin/products", {

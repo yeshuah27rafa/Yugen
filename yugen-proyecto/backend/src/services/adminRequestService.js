@@ -160,7 +160,11 @@ async function listCustomers(query) {
 }
 
 async function listMessages() {
-  return Contact.find({}).sort({ createdAt: -1 }).limit(50).populate("product", "name slug");
+  return Contact.find({}).sort({ createdAt: -1 }).limit(50).populate({
+    path: "product",
+    select: "name slug category work images",
+    populate: { path: "work", select: "title slug" }
+  });
 }
 
 async function markMessageReviewed(id) {
@@ -228,25 +232,32 @@ async function deleteMessage(id) {
 }
 
 // Obras: el administrador las crea, edita y borra. Una obra con piezas no se puede borrar.
-async function createWork(data) {
+function normalizeWork(data) {
   const title = String(data.title || "").trim();
   const slug = String(data.slug || "").trim().toLowerCase();
-  if (title === "" || /^[a-z0-9-]+$/.test(slug) === false) throw fail(400, "La obra necesita título y un enlace (slug) válido.");
-  const year = data.year === "" || data.year === undefined ? undefined : Number(data.year);
-  return Work.create({ title, slug, year, synopsis: String(data.synopsis || ""), cover: String(data.cover || "") });
+  const synopsis = String(data.synopsis || "").trim();
+  const cover = String(data.cover || "").trim();
+  const year = data.year === "" || data.year === undefined || data.year === null ? null : Number(data.year);
+  const sortOrder = data.sortOrder === "" || data.sortOrder === undefined || data.sortOrder === null ? 0 : Number(data.sortOrder);
+  if (title === "" || title.length > 120 || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) === false || slug.length > 120) {
+    throw fail(400, "La obra necesita un título y un enlace (slug) válido.");
+  }
+  if (year !== null && year !== undefined && (!Number.isInteger(year) || year < 1900 || year > 2200)) throw fail(400, "El año debe estar entre 1900 y 2200.");
+  if (!Number.isInteger(sortOrder) || sortOrder < 0 || sortOrder > 9999) throw fail(400, "El orden debe ser un entero entre 0 y 9999.");
+  if (synopsis.length > 2000) throw fail(400, "La descripción no puede superar 2000 caracteres.");
+  const safeLocalCover = /^\/assets\/[a-zA-Z0-9_./-]+$/.test(cover) && !cover.includes("..");
+  const safeRemoteCover = /^https?:\/\/[^\s]+$/i.test(cover);
+  if (cover !== "" && !safeRemoteCover && !safeLocalCover) throw fail(400, "La portada debe usar una URL http(s) o una ruta local segura dentro de /assets/.");
+  return { title, slug, year, synopsis, cover, sortOrder, showOnHome: data.showOnHome !== false };
+}
+
+async function createWork(data) {
+  return Work.create(normalizeWork(data));
 }
 
 async function updateWork(id, data) {
   requireValidId(id);
-  const updated = await Work.findByIdAndUpdate(id, {
-    $set: {
-      title: String(data.title || "").trim(),
-      slug: String(data.slug || "").trim().toLowerCase(),
-      year: data.year === "" || data.year === undefined ? undefined : Number(data.year),
-      synopsis: String(data.synopsis || ""),
-      cover: String(data.cover || "")
-    }
-  }, { new: true, runValidators: true });
+  const updated = await Work.findByIdAndUpdate(id, { $set: normalizeWork(data) }, { new: true, runValidators: true });
   if (updated === null) throw fail(404, "Obra no encontrada.");
   return updated;
 }
