@@ -5,6 +5,11 @@
     {
       "source": "/api/:path*",
       "destination": "https://yugen-0bt6.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
+
